@@ -1,10 +1,10 @@
 <div align="center">
   
-# 🧭 TensorMap (tm::)
+# 🧭 TensorInfo (tin::)
 
 </div>
 
-**TensorMap** is a lightweight C++ library designed to simplify the handling of tensor data stored in specialized file formats such as `.safetensors` and `.gguf`. It provides tools to efficiently access tensor metadata, shapes, and memory offsets, enabling seamless integration with machine learning models and data processing workflows.
+**TensorInfo** is a lightweight C++ library designed to simplify the handling of tensor data stored in specialized file formats such as `.safetensors` and `.gguf`. It provides access to tensor metadata, shapes, and memory offsets, enabling seamless integration with machine learning checkpoints verifing and data processing workflows.
 
 It includes utilities for inspecting safetensors/gguf files:
 - `lstensors`: CLI tool to list tensors and metadata in safetensors and gguf files.
@@ -13,13 +13,13 @@ It includes utilities for inspecting safetensors/gguf files:
 > [!NOTE]
 > This project is in its early development phase. Some features may change as the project evolves.
 
-TensorMap allows developers to load and inspect tensor maps from different file formats. The library currently includes two core classes:
+TensorInfo allows developers to load and inspect tensor maps from different file formats. The library currently includes two core classes:
 - **TensorMap**: A high-level interface for managing tensor data and metadata.
 - **TensorTree**: A hierarchical navigation system for exploring tensor structures within the loaded files.
 
 ## Key Features
 
-- Load and parse tensor maps from `.safetensors` and `.gguf` files.
+- Load and parse tensor information from `.safetensors` and `.gguf` files.
 - Access tensor metadata, including shapes, types, and byte offsets.
 - Retrieve original file metadata.
 - CLI utilities for quick analysis and exploration of tensor files.
@@ -27,7 +27,7 @@ TensorMap allows developers to load and inspect tensor maps from different file 
 
 ## Getting Started
 
-To use TensorMap, ensure your environment supports C++20 or later. Clone the repository and build using meson.
+To use TensorInfo, ensure your environment supports C++20 or later. Clone the repository and build using meson.
 Contributions and feedback are welcome as the project evolves.
 
 ## License

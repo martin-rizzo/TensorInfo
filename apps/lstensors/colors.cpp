@@ -1,5 +1,5 @@
 /*
-| File    : colors.h
+| File    : colors.cpp
 | Purpose : A class for handling terminal colors.
 |           This class is a singleton and can be accessed through the instance() method.
 | Author  : Martin Rizzo | <martinrizzo@gmail.com>

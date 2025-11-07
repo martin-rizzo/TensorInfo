@@ -1,8 +1,6 @@
 /*
-| File    : messages.h
-| Purpose : 
-  spanish: simple coleccion de tipos de mensajes para el usuario
-  english: simple collection of user messages
+| File    : message.h
+| Purpose : Simple class to display messages to the user in the console.
 | Author  : Martin Rizzo | <martinrizzo@gmail.com>
 | Date    : Nov 6, 2025
 | Repo    : https://github.com/martin-rizzo/TensorInfo
@@ -12,14 +10,14 @@
 |   A C++ library for working with tensors & metadata in model checkpoints
 \_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _*/
 #pragma once
-#ifndef MESSAGES_H_
-#define MESSAGES_H_
-#include <vector>
-#include <string_view>
+#ifndef MESSAGE_H_
+#define MESSAGE_H_
+#include <string_view> // for std::string_view
+#include <vector>      // for std::vector
 
 
 /**
- * A simple collection of user messages.
+ * Simple class to display messages to the user in the console.
  *
  * This class provides static methods to display different types of messages:
  *  - Warnings    : Informative messages that do not interrupt the flow of the program.
@@ -35,4 +33,4 @@ public:
 };
 
 
-#endif // MESSAGES_H_
+#endif // MESSAGE_H_

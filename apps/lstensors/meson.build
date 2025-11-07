@@ -10,9 +10,10 @@ sources = [ ]
 
 #subdir('<none>')
 sources += files(
+    'args.cpp',
     'colors.cpp',
     'main.cpp',
-    'messages.cpp',
+    'message.cpp',
 )
 
 executable(

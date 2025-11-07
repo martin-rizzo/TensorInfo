@@ -1,7 +1,18 @@
-#include <string>   // for std::string
-#include <iostream> // for std::cout, std::cerr
-#include <vector>   // for std::vector
-#include "messages.h"
+/*
+| File    : message.h
+| Purpose : Simple class to display messages to the user in the console.
+| Author  : Martin Rizzo | <martinrizzo@gmail.com>
+| Date    : Nov 6, 2025
+| Repo    : https://github.com/martin-rizzo/TensorInfo
+| License : MIT
+|- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+|                                 TensorInfo
+|   A C++ library for working with tensors & metadata in model checkpoints
+\_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _*/
+#include <string_view> // for std::string_view
+#include <vector>      // for std::vector
+#include <iostream>    // for std::cerr
+#include "message.h"
 #include "colors.h" 
 
 

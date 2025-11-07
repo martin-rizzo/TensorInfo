@@ -1,7 +1,7 @@
 /*
-| File    : colors.cpp
+| File    : colors.h
 | Purpose : A class for handling terminal colors.
-|           This class is a singleton and can be accessed through the global() method.
+|           This class is a singleton and can be accessed through the instance() method.
 | Author  : Martin Rizzo | <martinrizzo@gmail.com>
 | Date    : Nov 6, 2025
 | Repo    : https://github.com/martin-rizzo/TensorInfo
@@ -47,7 +47,7 @@ Colors::get_color_code(const std::string_view& colorName) noexcept {
  * Disable all colors
  */
 void
-Colors::disable() noexcept {
+Colors::disable_colors() noexcept {
     _red = _yellow = _green = _cyan = _reset = "";
 }
 
@@ -57,6 +57,6 @@ Colors::disable() noexcept {
  * @return true if colors are enabled, false otherwise
  */
 bool
-Colors::is_enabled() const noexcept {
+Colors::are_colors_enabled() const noexcept {
     return _red[0] != '\0';
 }

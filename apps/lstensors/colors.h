@@ -1,7 +1,7 @@
 /*
 | File    : colors.h
 | Purpose : A class for handling terminal colors.
-|           This class is a singleton and can be accessed through the global() method.
+|           This class is a singleton and can be accessed through the instance() method.
 | Author  : Martin Rizzo | <martinrizzo@gmail.com>
 | Date    : Nov 6, 2025
 | Repo    : https://github.com/martin-rizzo/TensorInfo
@@ -22,6 +22,24 @@
  * This class provides a thread-safe singleton instance for managing ANSI color
  * codes for terminal output. It supports disabling colors and provides various
  * color codes for different text formatting.
+ * 
+ * Example usage:
+ * @code{.cpp}
+ * #include <iostream>
+ *
+ * int main() {
+ *     auto c = Colors::instance();
+ *
+ *     std::cout << c.red()   << "This is red text" << c.reset()   << std::endl;
+ *     std::cout << c.green() << "This is green text" << c.reset() << std::endl;
+ *
+ *     // Disable color output
+ *     c.disable_colors();
+ *     std::cout << c.red() << "This will not be colored" << c.reset() << std::endl;
+ *
+ *     return 0;
+ * }
+ * @endcode
  */
 class Colors
 {
@@ -68,10 +86,10 @@ public:
     [[nodiscard]] std::string_view get_color_code(const std::string_view& colorName) noexcept;
 
 
-// CONTROL
+// CONTROL COLORS
 public:
-    void disable() noexcept;
-    [[nodiscard]] bool is_enabled() const noexcept;
+    void disable_colors() noexcept;
+    [[nodiscard]] bool are_colors_enabled() const noexcept;
 
 
 // IMPLEMENTATION

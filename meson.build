@@ -22,11 +22,11 @@ project(
     'cpp',                   # Primary language
     version: '0.0.1',        # Project version
     license: 'MIT',          # Project license
-    default_options: [       # Default options for the project
-        'cpp_std=c++20',     # Use C++20 standard
+    default_options: [
+        'cpp_std=c++20',     # Default C++ standard: C++20
+        'buildtype=debug',   # Default build type  : debug
         'warning_level=3',   # Set warning level to 3 (high verbosity)
         'werror=true',       # Treat all warnings as errors
-        'buildtype=debug',   # Default build type: debug
     ],
     meson_version: '>=1.1',  # Minimum Meson version required by this project
 )
@@ -42,20 +42,31 @@ add_project_arguments(['-Wno-unused-parameter'], language : 'cpp')
 ##=========================================================================##
 include_dirs = include_directories('include')
 sources = [ ]
+public_headers = [ ]
 subdir('src' / 'tin' )
+subdir('include' / 'tin' )
+
+# Install the public headers for the "TensorInfo" library
+install_headers(
+    public_headers,        # public headers to install
+    preserve_path: true,   # if true, the directory structure must be preserved
+    subdir       : 'tin',  # the subdirectory within the "include" dir
+)
 
 # Define the "TensorInfo" library as both static and shared libraries
 tensorinfo_static = static_library(
     'tin',                              # Name of the static library
     sources,                            # Sources for compiling the library
     include_directories: include_dirs,  # Include dirs for the library itself
-    # install: true                     # Install the library when running 'meson install'
+    install            : true,          # true = it should be installed when running 'meson install'
+    install_dir        : 'lib',         # where to install it (relative to 'prefix')
 )
 tensorinfo_shared = shared_library(
     'tin',                              # Name of the static library
     sources,                            # Sources for compiling the library
     include_directories: include_dirs,  # Include dirs for the library itself
-    # install: true                     # Install the library when running 'meson install'
+    install            : true,          # true = it should be installed when running 'meson install'
+    install_dir        : 'lib',         # where to install it (relative to 'prefix')
 )
 
 # Create dependencies for each library type

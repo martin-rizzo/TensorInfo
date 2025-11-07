@@ -20,7 +20,6 @@ executable(
     'lstensors',
     sources,
     dependencies : tensorinfo_static_dep,
-    install      : false,
-#   install      : true,
-#   install_dir  : tools_dir_fullpath / 'bin'
+    install      : true,   # true = it should be installed when running 'meson install'
+    install_dir  : 'bin',  # where to install it (relative to 'prefix')
 )

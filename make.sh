@@ -33,6 +33,7 @@
 SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}" .sh)         # script name without extension
 SCRIPT_DIR=$(realpath "$(dirname "${BASH_SOURCE[0]}")") # script directory
 PROJECT_DIR=$SCRIPT_DIR                                 # project directory
+RELEASE_DIR='/tmp/TensorInfo'                           # release directory
 HELP="
 Usage: ./$SCRIPT_NAME.sh [COMMAND] [OPTIONS]
 
@@ -42,6 +43,7 @@ Usage: ./$SCRIPT_NAME.sh [COMMAND] [OPTIONS]
     build        Build the project (default)
     rebuild      Rebuild the project from scratch
     clean        Clean the build directory
+    release      Build the release version in: ${RELEASE_DIR}
     library      Build only the library (libtin.a)
     tools        Build the command-line tools
 
@@ -80,6 +82,36 @@ fatal_error() {
     echo; exit 1
 }
 
+#================================= HELPERS =================================#
+
+# Removes the release directory if it exists
+#
+# Usage:
+#   remove_release_dir
+#
+# Parameters:
+#   The function uses the variable `RELEASE_DIR` which should contain the
+#   path to the directory intended for removal.
+#
+# Notes:
+#   - This function assumes that the variable `RELEASE_DIR` is set.
+#   - Using this function on directories outside "/tmp" will result in no action,
+#     preventing accidental deletions from unintended locations.
+#
+remove_release_dir() {
+    # if the directory does not exist, do nothing
+    if [[ ! -d "${RELEASE_DIR}" ]]; then
+        return 0;
+    fi
+    # if the directory is not located within "/tmp", better not delete it
+    if [[ "${RELEASE_DIR}" != "/tmp"* ]]; then
+        echo "Release directory will not be deleted because it is not in /tmp"
+        return 0
+    fi
+    rm -r "${RELEASE_DIR}"
+    echo "Release directory deleted."
+}
+
 #================================ COMMANDS =================================#
 
 
@@ -106,28 +138,59 @@ build_project() {
     # it uses `grep` to find error messages and then `head` to limit the number of lines shown
     if [[ "${error_limit}" ]]; then
         meson setup      builddir
-        meson install -C builddir 2>&1 | grep -E "error:|fatal error:" --color="always" | head -n "${error_limit}"
+        meson compile -C builddir 2>&1 | grep -E "error:|fatal error:" --color="always" | head -n "${error_limit}"
         return 0
     fi
     
 
     # this is the recommended way to compile the project
     meson setup      builddir
-    meson install -C builddir
+    meson compile -C builddir
 
 }
 
 
+# Builds the release version of the TensorInfo project using Meson.
 #
-# Cleans the project by removing the build directory.
+# Usage:
+#   release_project
+#
+# Description:
+#   This function automates the process of setting up, compiling, and installing 
+#   the TensorInfo project in release mode. It configures the build environment 
+#   with specified parameters to ensure that the output is optimized for release. 
+#   The resulting binaries and other files are installed into the "${RELEASE_DIR}"
+#   directory.
+#
+# Requirements:
+#   - Meson and Ninja build systems must be installed on the system.
+#   - The `PROJECT_DIR` variable should point to the root of the project directory.
+#   - The `RELEASE_DIR` variable should specify where the release files will be installed.
+#
+release_project() {
+    meson setup      builddir --prefix "${RELEASE_DIR}" -Dbuildtype=release || fatal_error "Meson setup failed."
+    meson compile -C builddir                                               || fatal_error "Meson compile failed."
+    meson install -C builddir                                               || fatal_error "Meson install failed."
+    echo "Release version of TensorInfo built successfully."
+    echo "Release files are located in ${RELEASE_DIR}"
+}
+
+
+# Cleans the project by removing build and release directories.
 #
 clean_project() {
     # make sure we are at the root of the project directory
     cd "$PROJECT_DIR"   || { fatal_error "Failed to change directory."; }
-    [[ -d 'builddir' ]] || { warning "No build directory found. Nothing to clean."; return 0; }
 
-    rm -rf 'builddir'
-    echo "Build directory cleaned."
+    # remove the build directory
+    if [[ -d 'builddir' ]]
+    then
+        rm -rf 'builddir'
+        echo "Build directory cleaned."
+    fi
+
+    # remove the release directory ($RELEASE_DIR)
+    remove_release_dir
 }
 
 
@@ -173,6 +236,7 @@ main() {
         build|all)  build_project "$error_limit" ; exit 0 ;;
         clean)      clean_project                ; exit 0 ;;
         rebuild)    clean_project; build_project ; exit 0 ;;
+        release)    release_project              ; exit 0 ;;
         library)    fatal_error "Not implemented yet." ;;
         tools)      fatal_error "Not implemented yet." ;;
         *)          fatal_error "Invalid command: \"$command\"" "Use --help for usage." ;;

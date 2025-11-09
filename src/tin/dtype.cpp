@@ -16,9 +16,22 @@ namespace tin {
 
 } // namespace tin
 
-
+/**
+ * Converts a `DType` enumeration value to its corresponding string representation.
+ *
+ * This function provides a standardized method for converting `DType`
+ * enumeration values into their respective string representations. It is
+ * defined within the `std` namespace, offering an overload of `std::to_string`
+ * that is specifically tailored for `DType` values. 
+ *
+ * @param type The `DType` enumeration value to be converted to a string.
+ * @return A string view representing the name of the data type. Returns "Unknown"
+ *         if the provided `type` does not have an associated string representation in
+ *         the predefined mapping.
+ */
 std::string_view
-to_string(tin::DType type) {
+std::to_string(tin::DType type)
+{
     static const std::unordered_map<tin::DType, std::string_view> typeMap = {
         {tin::DType::F64    , "F64"    },
         {tin::DType::F32    , "F32"    },
@@ -64,3 +77,4 @@ to_string(tin::DType type) {
     auto it = typeMap.find(type);
     return it != typeMap.end() ? it->second : "Unknown";
 }
+

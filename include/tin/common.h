@@ -63,20 +63,5 @@ std::unique_ptr<T> make(Args&&... args) {
 }
 
 
-// /** Creates an object of type T using the provided arguments and wraps it in SharedPtr<T>. (implemented using std::make_shared<T>) */
-// template<typename T, typename... Args>
-// SharedPtr<T> make_shared(Args&&... args) {
-//     return std::make_shared<T>(std::forward<Args>(args)...);
-// }
-
-/*
-template <typename T, typename... Args>
-inline std::shared_ptr<T>
-make_share(Args&&... args) {
-    return std::shared_ptr<T>( new T(
-        std::forward<Args>(args)... ) );
-}
-*/
-
 }      // namespace tin
 #endif // TIN_COMMON_H_

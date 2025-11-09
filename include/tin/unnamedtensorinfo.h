@@ -18,17 +18,27 @@
 #include <tin/shape.h>
 namespace tin {
 
-/// TODO: it should be called TensorMetadata ?
+
+/**
+ * Encapsulates the metadata associated with a tensor.
+ * 
+ * This class is primarily intended for internal use within other components,
+ * like `TensorInfo`, rather than being utilized directly by users. Its purpose
+ * is to store essential details about a tensor's storage characteristics,
+ * this allows operations that need tensor metadata but do not require
+ * identification via names.
+ *
+ * TODO: rename to TensorMetadata?
+ */
 class UnnamedTensorInfo
 {
 public:
-    UnnamedTensorInfo(DType dtype, const Shape& shape, SharedPtr<const Path> ptrPath, size_t begin, size_t end)
-    : _dtype(dtype), _shape(shape), _ptrPath(ptrPath), _begin(begin), _end(end) {}
+    UnnamedTensorInfo(DType dtype, const Shape& shape, SharedPtr<const Path> ptrPath, size_t begin, size_t end);
 
 public:
     [[nodiscard]] DType dtype() const { return _dtype; }
     [[nodiscard]] const Shape& shape() const { return _shape; }
-    //[[nodiscard]] const Path& path() const;
+    [[nodiscard]] const Path& path() const { return *_ptrPath; }
     [[nodiscard]] size_t begin() const { return _begin; }
     [[nodiscard]] size_t end() const { return _end; }
     [[nodiscard]] size_t size() const { return _end - _begin; }

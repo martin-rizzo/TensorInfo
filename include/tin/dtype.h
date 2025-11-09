@@ -104,16 +104,7 @@ constexpr tin::DType get_dtype() {
 
 } // namespace tin
 
-
-
-/**
- * Converts DType enum values to their corresponding string representations.
- *
- * @param type The DType value to be converted.
- * @return The string representation of the provided DType.
- */
-std::string_view to_string(tin::DType type);
-
+namespace std { string_view to_string(::tin::DType type); }
 
 /**
  * Overloads the insertion (<<) operator for outputting tin::DType values to streams.
@@ -127,9 +118,8 @@ std::string_view to_string(tin::DType type);
  */
 inline 
 std::ostream& operator<<(std::ostream& os, tin::DType type) {
-    return os << to_string(type);
+    return os << std::to_string(type);
 }
-
 
 /**
  * Formatter specialization for DType type.
@@ -153,10 +143,9 @@ template <>
 struct std::formatter<tin::DType> : std::formatter<std::string_view>
 {
     auto format(const tin::DType& dtype, format_context& ctx) const {
-        return std::formatter<std::string_view>::format(::to_string(dtype), ctx);
+        return std::formatter<std::string_view>::format(std::to_string(dtype), ctx);
     }
 };
-
 
 
 #endif // TIN_DTYPE_H_

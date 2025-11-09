@@ -7,7 +7,11 @@
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 public_headers += files(
+    'common.h',
+    'dtype.h',
+    'shape.h',
     'tensorinfo.h',
     'tensormap.h',
-    'tensortree.h'
+    'tensortree.h',
+    'unnamedtensorinfo.h'
 )

@@ -9,8 +9,8 @@
 |                                 TensorInfo
 |   A C++ library for working with tensors & metadata in model checkpoints
 \_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _*/
-#include <iostream>         // for std::cout
-#include <tin/tensormap.h>  // for tin::TensorMap
+#include <iostream>          // for std::cout
+#include <tin/tensorinfo.h>  // for tin::TensorInfo
 #include "args.h"
 #include "colors.h"
 #include "message.h"
@@ -54,7 +54,7 @@ void help() {
 //    std::cout << "key: " << it->first << " [" << it->second.shape() << "]" << std::endl;
 //}
 
-
+using namespace tin;
 
 
 int main(int argc, char* argv[]) {
@@ -69,7 +69,8 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    std::cout << args;
+    auto tensorInfo = TensorInfo{ "encoder.block.0.layer.0.SelfAttention.k.weight", DType::F16, {4096, 4096}, "dir/file.safetensors", 0, 100 };
+    std::cout << tensorInfo;
 
 
     // //// Get script name without extension

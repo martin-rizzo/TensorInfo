@@ -7,7 +7,10 @@
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #subdir('<none>')
 sources += files(
+    'dtype.cpp',
+    'shape.cpp',
     'tensorinfo.cpp',
     'tensormap.cpp',
-    'tensortree.cpp'
+    'tensortree.cpp',
+    'unnamedtensorinfo.cpp'
 )

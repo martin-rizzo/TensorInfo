@@ -1,6 +1,6 @@
 # RapidJSON
 
-RapidJSON is a fast JSON parser/generator for C++ with both SAX/DOM style API. This version is a stripped-down version that includes only the headers necessary to build with a modern compilers. The BSD3 code from the 'include/rapidjson/msinttypes' directory, which provided support for Visual Studio 2013 and earlier, was removed.
+**RapidJSON** is a fast JSON parser/generator for C++ with both SAX/DOM style API. This version is a stripped-down version that includes only the headers necessary to build with a modern compilers. The BSD3 code from the 'include/rapidjson/msinttypes' directory, which provided support for Visual Studio 2013 and earlier, was removed.
 
 ## Why RapidJSON?
 
@@ -8,7 +8,7 @@ RapidJSON was chosen for its exceptional performance. It offers high parsing and
 
 ## License
 
-The RapidJSON library is licensed under the MIT license.
-Details can be found in the [LICENSE](LICENSE) file within this directory.
-For more information or to access the full version, visit [RapidJSON on GitHub](https://github.com/Tencent/rapidjson).\
+RapidJSON is licensed under the MIT license.\
+Details can be found in the [LICENSE](LICENSE) file within this directory.\
+For more information or to access the full version, visit **[RapidJSON repository on GitHub](https://github.com/Tencent/rapidjson)**.\
 I would like to thank Tencent for supporting the open source community by making RapidJSON available to the public.

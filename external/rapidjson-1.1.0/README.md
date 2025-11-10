@@ -6,6 +6,8 @@
 
 RapidJSON was chosen for its exceptional performance. It offers high parsing and generation speeds while maintaining a small footprint, making it ideal for applications where efficiency is crucial.
 
+Benchmark tests comparing various open-source JSON parsers and generators are available [here](https://github.com/miloyip/nativejson-benchmark).
+
 ## License
 
 RapidJSON is licensed under the MIT license.\

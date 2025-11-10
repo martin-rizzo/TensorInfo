@@ -8,6 +8,16 @@ RapidJSON was chosen for its exceptional performance. It offers high parsing and
 
 Benchmark tests comparing various open-source JSON parsers and generators are available [here](https://github.com/miloyip/nativejson-benchmark).
 
+## Code Modifications
+
+A line in "document.h" was temporarily commented out due to a compiler error and unclear intent, allowing development to proceed without delay. The specific issue involved an attempt to modify the read-only member, as indicated by the error:
+ 
+```
+document.h:319:82: error: assignment of read-only member ‘rapidjson::GenericStringRef<CharType>::length’
+```
+
+Further investigation is planned to resolve this issue.
+
 ## License
 
 RapidJSON is licensed under the MIT license.\

@@ -10,6 +10,8 @@ sources += files(
     'dtype.cpp',
     'shape.cpp',
     'tensorinfo.cpp',
+    'tensormap_gguf.cpp',
+    'tensormap_safetensors.cpp',
     'tensormap.cpp',
     'tensortree.cpp',
     'unnamedtensorinfo.cpp'

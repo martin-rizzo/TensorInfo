@@ -35,11 +35,15 @@ public:
     TensorInfo(StringView name, DType dtype, const Shape& shape, StringView filePath, size_t begin, size_t end);
     TensorInfo(StringView name, DType dtype, const Shape& shape, SharedPtr<const Path> ptrPath, size_t begin, size_t end);
     TensorInfo(StringView name, const TensorInfo& other);
+    TensorInfo(const TensorInfo& other) = default;
+    TensorInfo(TensorInfo&& other) = default;
+    ~TensorInfo() = default;
 private:
     TensorInfo(SharedPtr<String> ptrName, SharedPtr<UnnamedTensorInfo> ptrUnnamedTensorInfo);
 
 // ATTRIBUTES
 public:
+    [[nodiscard]] String       name()  const;
     [[nodiscard]] DType        dtype() const;
     [[nodiscard]] const Shape& shape() const;
     [[nodiscard]] const Path&  path()  const;
@@ -58,6 +62,14 @@ private:
 };
 
 //============================== ATTRIBUTES ===============================//
+
+/**
+ * Returns name of the tensor.
+ */
+inline String
+TensorInfo::name()  const {
+    return *_ptrName;
+}
 
 /**
  * Returns the data type of the tensor elements.

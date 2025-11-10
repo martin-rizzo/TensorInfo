@@ -1,5 +1,5 @@
 /*
-| File    : args.cpp
+| File    : lstensors_args.h
 | Purpose : The arguments of the `lstensors` command line
 | Author  : Martin Rizzo | <martinrizzo@gmail.com>
 | Date    : Nov 7, 2025
@@ -10,11 +10,11 @@
 |   A C++ library for working with tensors & metadata in model checkpoints
 \_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _*/
 #include <string>
-#include "args.h"
+#include "lstensors_args.h"
 #include "message.h"
 
 /**
- * Parses command line arguments and returns a populated Args object.
+ * Constructs a new LsTensorsArgs object by parsing command line arguments.
  *
  * This function processes the command line arguments provided to the program,
  * distinguishing between flag-style options (prefixed with '-') and positional
@@ -22,21 +22,9 @@
  *
  * @param argc The number of command line arguments passed to the program.
  * @param argv An array of C strings representing the command line arguments.
- * @return A populated Args object containing parsed values from the
- *         command line arguments.
  */
-Args
-Args::from_main(int argc, char* argv[])
+LsTensorsArgs::LsTensorsArgs(int argc, char* argv[])
 {
-    Command     command{ Command::LIST_TENSORS };
-    Format      format{ Format::HUMAN };
-    std::string input_file{ };
-    std::string prefix{ };
-    std::string tensor_name{ };
-    int         depth{ 0 };
-    bool        no_color{ false };
-    bool        help{ false };
-
     for( int i=1 ; i < argc ; ++i ) {
         std::string arg{ argv[i] };
 
@@ -51,7 +39,7 @@ Args::from_main(int argc, char* argv[])
             else if( arg=="-u" || arg=="--human"    ) { format = Format::HUMAN; }
             else if( arg=="-b" || arg=="--plain"    ) { format = Format::PLAIN; }
             else if( arg=="-j" || arg=="--json"     ) { format = Format::JSON; }
-            else if( arg=="-n" || arg=="--no-color" ) { no_color = true; }
+            else if( arg=="-n" || arg=="--no-color" ) { use_color = UseColor::NEVER; }
             else if( arg=="-h" || arg=="--help"     ) { help = true; }
             else {
                 Message::fatal_error("Unknown argument: " + arg, {
@@ -69,21 +57,10 @@ Args::from_main(int argc, char* argv[])
             }
         }
     }
-    // return the parsed arguments
-    return Args{
-        command,
-        format,
-        input_file,
-        prefix,
-        tensor_name,
-        depth,
-        no_color,
-        help
-    };
 }
 
 /**
- * Overloads the insertion operator (<<) for printing Args objects to an output stream.
+ * Overloads the insertion operator (<<) for printing LsTensorsArgs objects to an output stream.
  *
  * This function provides a way to print the contents of an Args object in a 
  * human-readable format. It outputs each member variable with its name and
@@ -94,15 +71,15 @@ Args::from_main(int argc, char* argv[])
  * @return A reference `os` for chaining.
  */
 std::ostream&
-operator<<(std::ostream& os, const Args& args) {
-    os << "Args:"                                              << std::endl;
-    os << "  Command: "     << static_cast<int>(args.command)  << std::endl;
-    os << "  Format: "      << static_cast<int>(args.format)   << std::endl;
-    os << "  Input File: "  << args.input_file                 << std::endl;
-    os << "  Prefix: "      << args.prefix                     << std::endl;
-    os << "  Tensor Name: " << args.tensor_name                << std::endl;
-    os << "  Depth: "       << args.depth                      << std::endl;
-    os << "  No Color: "    << std::boolalpha << args.no_color << std::endl;
-    os << "  Help: "        << std::boolalpha << args.help     << std::endl;
+operator<<(std::ostream& os, const LsTensorsArgs& args) {
+    os << "Args:"                                        << std::endl;
+    os << "  command: "     << to_string(args.command)   << std::endl;
+    os << "  format: "      << to_string(args.format)    << std::endl;
+    os << "  input_file: "  << args.input_file           << std::endl;
+    os << "  prefix: "      << args.prefix               << std::endl;
+    os << "  tensor_name: " << args.tensor_name          << std::endl;
+    os << "  depth: "       << args.depth                << std::endl;
+    os << "  use_color: "   << to_string(args.use_color) << std::endl;
+    os << "  Help: "        << to_string(args.help)      << std::endl;
     return os;
 }

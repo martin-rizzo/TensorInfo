@@ -10,8 +10,9 @@ sources = [ ]
 
 #subdir('<none>')
 sources += files(
-    'args.cpp',
     'colors.cpp',
+    'lstensors_args.cpp',
+    'lstensors_command.cpp',
     'main.cpp',
     'message.cpp',
 )

@@ -7,6 +7,7 @@
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #                                 TensorInfo
 #   A C++ library for working with tensors & metadata in model checkpoints
+#- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #
 #  Each subdirectory in this project should have its own "meson.build"
 #  file which adds source files to the array `sources`.
@@ -33,9 +34,19 @@ project(
 
 #-- C++ OPTIONS ------------------------------------------------------------#
 
-# Suppress warnings about unused parameters
-add_project_arguments(['-Wno-unused-parameter'], language : 'cpp')
+# Suppressed warnings to be able to compile RapidJSON
+add_project_arguments([
+    '-Wno-unused-parameter',         #< suppress warnings about unused parameters
+    '-Wno-deprecated-declarations',  #< suppress warnings about deprecated declarations
+    '-Wno-class-memaccess'           #< suppress warnings about memcpy between objects
+    ],
+    language : 'cpp'
+)
 
+#-- DEPENDENCIES -----------------------------------------------------------#
+
+# RapidJSON dependency (rapidjson_dep)
+subdir('external' / 'rapidjson-1.1.0')
 
 ##=========================================================================##
 ## //////////////////////    TENSORINFO LIBRARY    /////////////////////// ##
@@ -55,18 +66,20 @@ install_headers(
 
 # Define the "TensorInfo" library as both static and shared libraries
 tensorinfo_static = static_library(
-    'tin',                              # Name of the static library
-    sources,                            # Sources for compiling the library
-    include_directories: include_dirs,  # Include dirs for the library itself
-    install            : true,          # true = it should be installed when running 'meson install'
-    install_dir        : 'lib',         # where to install it (relative to 'prefix')
+    'tin',                                  # Name of the static library
+    sources,                                # Sources for compiling the library
+    include_directories: include_dirs,      # Include dirs for the library itself
+    dependencies       : [ rapidjson_dep ], # Dependencies for the library
+    install            : true,              # true = it should be installed when running 'meson install'
+    install_dir        : 'lib',             # where to install it (relative to 'prefix')
 )
 tensorinfo_shared = shared_library(
-    'tin',                              # Name of the static library
-    sources,                            # Sources for compiling the library
-    include_directories: include_dirs,  # Include dirs for the library itself
-    install            : true,          # true = it should be installed when running 'meson install'
-    install_dir        : 'lib',         # where to install it (relative to 'prefix')
+    'tin',                                  # Name of the static library
+    sources,                                # Sources for compiling the library
+    include_directories: include_dirs,      # Include dirs for the library itself
+    dependencies       : [ rapidjson_dep ], # Dependencies for the library
+    install            : true,              # true = it should be installed when running 'meson install'
+    install_dir        : 'lib',             # where to install it (relative to 'prefix')
 )
 
 # Create dependencies for each library type

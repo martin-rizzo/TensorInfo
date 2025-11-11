@@ -20,23 +20,23 @@ namespace tin {
 /**
  * Constructors a TensorInfo with all its attributes.
  *
- * @param name   The name of the tensor (e.g., "encoder.block.0.layer.0.SelfAttention.k.weight")
- * @param dtype  The data type of the tensor elements (e.g., DType::F16)
- * @param shape  The shape of the tensor (e.g., Shape{128, 64})
- * @param path   The path to the file containing the tensor data.
- * @param begin  The offset in bytes from which the tensor data starts in the file.
- * @param end    The offset in bytes at which the tensor data ends in the file.
+ * @param name         The name of the tensor (e.g., "encoder.block.0.layer.0.SelfAttention.k.weight")
+ * @param dtype        The data type of the tensor elements (e.g., DType::F16)
+ * @param shape        The shape of the tensor (e.g., Shape{128, 64})
+ * @param path         The path to the file containing the tensor data.
+ * @param rawDataBegin The offset in bytes from which the tensor data starts in the file.
+ * @param rawDataEnd   The offset in bytes at which the tensor data ends in the file.
  */
-TensorInfo::TensorInfo(StringView   name,
-                       DType        dtype,
-                       const Shape& shape,
-                       StringView   path,
-                       size_t       begin,
-                       size_t       end
+TensorInfo::TensorInfo(StringView     name,
+                       DType          dtype,
+                       const Shape&   shape,
+                       StringView     path,
+                       std::streampos rawDataBegin,
+                       std::streampos rawDataEnd
 ):
 TensorInfo(
     make<String>(name),
-    make<UnnamedTensorInfo>( dtype, shape, make<Path>(path), begin, end )
+    make<UnnamedTensorInfo>( dtype, shape, make<Path>(path), rawDataBegin, rawDataEnd )
 )
 {}
 
@@ -49,13 +49,13 @@ TensorInfo(
  * remains constant since TensorInfo objects are immutable, necessitating
  * careful usage.
  *
- * @param name    The name of the tensor (e.g., "encoder.block.0.layer.0.SelfAttention.k.weight")
- * @param dtype   The data type of the tensor elements (e.g., DType::F16)
- * @param shape   The shape of the tensor (e.g., Shape{128, 64})
- * @param ptrPath The path to the file containing the tensor data.
- *                (this path may be shared between multiple TensorInfo instances)
- * @param begin   The offset in bytes from which the tensor data starts in the file.
- * @param end     The offset in bytes at which the tensor data ends in the file.
+ * @param name         The name of the tensor (e.g., "encoder.block.0.layer.0.SelfAttention.k.weight")
+ * @param dtype        The data type of the tensor elements (e.g., DType::F16)
+ * @param shape        The shape of the tensor (e.g., Shape{128, 64})
+ * @param ptrPath      The path to the file containing the tensor data.
+ *                     (this path may be shared between multiple TensorInfo instances)
+ * @param rawDataBegin The offset in bytes from which the tensor data starts in the file.
+ * @param rawDataEnd   The offset in bytes at which the tensor data ends in the file.
  * 
  * Note: Due to immutability constraints, ensure that any shared paths are not
  * altered after TensorInfo objects have been constructed with them.
@@ -64,12 +64,12 @@ TensorInfo::TensorInfo(StringView            name,
                        DType                 dtype,
                        const Shape&          shape,
                        SharedPtr<const Path> ptrPath,
-                       size_t                begin,
-                       size_t                end
+                       std::streampos        rawDataBegin,
+                       std::streampos        rawDataEnd
 ):
 TensorInfo(
     make<String>(name),
-    make<UnnamedTensorInfo>( dtype, shape, ptrPath, begin, end )
+    make<UnnamedTensorInfo>( dtype, shape, ptrPath, rawDataBegin, rawDataEnd )
 )
 {}
 

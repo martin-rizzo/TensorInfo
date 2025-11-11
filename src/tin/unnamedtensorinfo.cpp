@@ -21,23 +21,23 @@ static SharedPtr<const Path> _ptrEmptyPath = std::make_shared<Path>();
 /**
  * Constructors a UnnamedTensorInfo with all its attributes.
  *
- * @param dtype    The data type of the tensor elements (e.g., DType::F16)
- * @param shape    The shape of the tensor (e.g., Shape{128, 64})
- * @param ptrPath  The path to the file containing the tensor data.
- *                 (this path may be shared between multiple UnnamedTensorInfo objects)
- * @param begin    The offset in bytes from which the tensor data starts in the file.
- * @param end      The offset in bytes at which the tensor data ends in the file.
+ * @param dtype        The data type of the tensor elements (e.g., DType::F16)
+ * @param shape        The shape of the tensor (e.g., Shape{128, 64})
+ * @param ptrPath      The path to the file containing the tensor data.
+ *                     (this path may be shared between multiple UnnamedTensorInfo objects)
+ * @param rawDataBegin The offset in bytes from which the tensor data starts in the file.
+ * @param rawDataEnd   The offset in bytes at which the tensor data ends in the file.
  */
 UnnamedTensorInfo::UnnamedTensorInfo(DType                 dtype,
                                      const Shape&          shape,
                                      SharedPtr<const Path> ptrPath,
-                                     size_t                begin,
-                                     size_t                end
-): _dtype  { dtype },
-   _shape  { shape },
-   _ptrPath{ ptrPath ? ptrPath : _ptrEmptyPath },
-   _begin  { begin },
-   _end    { end   }
+                                     std::streampos        rawDataBegin,
+                                     std::streampos        rawDataEnd
+): _dtype       { dtype },
+   _shape       { shape },
+   _ptrPath     { ptrPath && !ptrPath->empty() ? ptrPath : _ptrEmptyPath },
+   _rawDataBegin{ rawDataBegin },
+   _rawDataEnd  { rawDataEnd   }
 {}
 
 
@@ -55,17 +55,17 @@ String
 UnnamedTensorInfo::to_string() const {
     return std::format(
         "UnnamedTensorInfo{{\n"\
-        "    dtype: {},\n"\
-        "    shape: {},\n"\
-        "    path : \"{}\",\n"\
-        "    begin: {},\n"\
-        "    end  : {},\n"\
+        "    _dtype       : {},  \n"\
+        "    _shape       : {},  \n"\
+        "    _ptrPath     : '{}',\n"\
+        "    _rawDataBegin: {},  \n"\
+        "    _rawDataEnd  : {},  \n"\
         "}}",
         _dtype,
-        _shape.to_string(),
+        _shape,
         _ptrPath ? _ptrPath->string() : "<nullptr>",
-        _begin,
-        _end
+        static_cast<size_t>(_rawDataBegin),
+        static_cast<size_t>(_rawDataEnd)
     );
 }
 

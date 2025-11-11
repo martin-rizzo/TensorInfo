@@ -54,8 +54,8 @@ public:
 
 // LOADING
 public:
-    static TensorMap from_file(const Path& path);
-    static TensorMap from_stream(std::istream& istream, const Path& path = {}, size_t offset = 0);
+    static TensorMap from_file(const Path& filePath);
+    static TensorMap from_stream(std::istream& istream, const Path& filePath = {}, std::streamsize fileSize = 0);
 
 // MODIFIERS
 public:
@@ -100,8 +100,8 @@ public:
 
 // IMPLEMENTATION
 private:
-    static TensorMap _fromsafetensors(const uint8_t firstBytes[8], std::istream& istream, const Path& path = {}, size_t offset = 0);
-    static TensorMap _fromgguf(const uint8_t firstBytes[8], std::istream& istream, const Path& path = {}, size_t offset = 0);
+    static TensorMap _fromsafetensors(const uint8_t firstBytes[8], std::istream& istream, const Path& filePath = {}, std::streamsize fileSize = 0, std::streampos byteBufferPosition = 0);
+    static TensorMap _fromgguf(const uint8_t firstBytes[8], std::istream& istream, const Path& filePath = {}, std::streamsize fileSize = 0, std::streampos byteBufferPosition = 0);
 private:
     std::unordered_map<String, TensorInfo> _map;
 };

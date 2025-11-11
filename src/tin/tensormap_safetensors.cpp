@@ -13,12 +13,17 @@
 |  Safetensors Format Specification: https://github.com/huggingface/safetensors
 |
 \_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _*/
-#include <iostream>
+#include <iostream>   // for std::istream
+#include <algorithm>  // for std::max
 #include <tin/tensormap.h>
 #include <rapidjson/document.h>
 namespace tin {
 namespace json = rapidjson;
 using VectorSizeT = std::vector<size_t>;
+
+// The maximum safe size for the header (in bytes).
+// If the file is very large, this value can be increased.
+static const size_t MaximumSafeHeaderSize = 10*1024*1024;
 
 //================================ HELPERS ================================//
 
@@ -36,29 +41,29 @@ using VectorSizeT = std::vector<size_t>;
 static Optional<DType>
 _read_dtype(const json::Value& value
 ){
-    if( value.IsString() ) {
-        StringView dtypeStr{ value.GetString() };
-        if( dtypeStr == "BOOL"    ) { return DType::BOOL;    }
-        if( dtypeStr == "F4"      ) { return DType::F4;      }
-        if( dtypeStr == "F6_E2M3" ) { return DType::F6_E2M3; }
-        if( dtypeStr == "F6_E3M2" ) { return DType::F6_E3M2; }
-        if( dtypeStr == "U8"      ) { return DType::U8;      }
-        if( dtypeStr == "I8"      ) { return DType::I8;      }
-        if( dtypeStr == "F8_E5M2" ) { return DType::F8_E5M2; }
-        if( dtypeStr == "F8_E4M3" ) { return DType::F8_E4M3; }
-        if( dtypeStr == "F8_E8M0" ) { return DType::F8_E8M0; }
-        if( dtypeStr == "I16"     ) { return DType::I16;     }
-        if( dtypeStr == "U16"     ) { return DType::U16;     }
-        if( dtypeStr == "F16"     ) { return DType::F16;     }
-        if( dtypeStr == "BF16"    ) { return DType::BF16;    }
-        if( dtypeStr == "I32"     ) { return DType::I32;     }
-        if( dtypeStr == "U32"     ) { return DType::U32;     }
-        if( dtypeStr == "F32"     ) { return DType::F32;     }
-        if( dtypeStr == "F64"     ) { return DType::F64;     }
-        if( dtypeStr == "I64"     ) { return DType::I64;     }
-        if( dtypeStr == "U64"     ) { return DType::U64;     }
-    }
-    return {};
+    if( !value.IsString() ) { return {}; }
+
+    StringView valueStr{ value.GetString() };
+    if( valueStr == "BOOL"    ) { return DType::BOOL;    }
+    if( valueStr == "F4"      ) { return DType::F4;      }
+    if( valueStr == "F6_E2M3" ) { return DType::F6_E2M3; }
+    if( valueStr == "F6_E3M2" ) { return DType::F6_E3M2; }
+    if( valueStr == "U8"      ) { return DType::U8;      }
+    if( valueStr == "I8"      ) { return DType::I8;      }
+    if( valueStr == "F8_E5M2" ) { return DType::F8_E5M2; }
+    if( valueStr == "F8_E4M3" ) { return DType::F8_E4M3; }
+    if( valueStr == "F8_E8M0" ) { return DType::F8_E8M0; }
+    if( valueStr == "I16"     ) { return DType::I16;     }
+    if( valueStr == "U16"     ) { return DType::U16;     }
+    if( valueStr == "F16"     ) { return DType::F16;     }
+    if( valueStr == "BF16"    ) { return DType::BF16;    }
+    if( valueStr == "I32"     ) { return DType::I32;     }
+    if( valueStr == "U32"     ) { return DType::U32;     }
+    if( valueStr == "F32"     ) { return DType::F32;     }
+    if( valueStr == "F64"     ) { return DType::F64;     }
+    if( valueStr == "I64"     ) { return DType::I64;     }
+    if( valueStr == "U64"     ) { return DType::U64;     }
+    return DType::UNKNOWN;
 }
 
 
@@ -88,7 +93,7 @@ _read_sizet_array(const json::Value& value
 
 
 /**
- * Constructs TensorInfo from JSON data.
+ * Try to construct a TensorInfo object from JSON data.
  *
  * This static function creates a `TensorInfo` object from a JSON representation.
  * It extracts the data type ('dtype'), shape array ('shape'), and data offsets
@@ -106,87 +111,137 @@ _read_sizet_array(const json::Value& value
  *    or an empty optional if any component is missing or malformed.
  */
 static Optional<TensorInfo>
-_tensor_info_from_json(StringView            name,
-                       const json::Value&    value,
-                       SharedPtr<const Path> ptrPath,
-                       size_t                byteBufferOffset)
-{
+_try_to_parse_tensor_info(StringView            name,
+                          const json::Value&    value,
+                          SharedPtr<const Path> ptrPath,
+                          size_t                byteBufferOffset
+){
     if( !value.IsObject() ) { return {}; }
 
-    auto opDType       = _read_dtype      ( value["dtype"]        );
-    auto opShapeArray  = _read_sizet_array( value["shape"]        );
-    auto opOffsetArray = _read_sizet_array( value["data_offsets"] );
-    if( !opDType || !opShapeArray || !opOffsetArray ) { return {}; }
-    if( opOffsetArray->size() != 2 ) { return {}; }
+    auto opt_dtype       = _read_dtype      ( value["dtype"]        );
+    auto opt_shapeArray  = _read_sizet_array( value["shape"]        );
+    auto opt_offsetArray = _read_sizet_array( value["data_offsets"] );
+    if( !opt_dtype || !opt_shapeArray || !opt_offsetArray ) { return {}; }
+    if( opt_offsetArray->size() != 2 ) { return {}; }
     return TensorInfo(name,
-                      *opDType,
-                      Shape{ *opShapeArray },
+                      *opt_dtype,
+                      Shape{ *opt_shapeArray },
                       ptrPath,
-                      opOffsetArray->at(0) + byteBufferOffset,
-                      opOffsetArray->at(1) + byteBufferOffset
+                      opt_offsetArray->at(0) + byteBufferOffset,
+                      opt_offsetArray->at(1) + byteBufferOffset
                       );
 }
 
-//====================== READING A SAFETENSORS FILE =======================//
 
+//===================== READING FROM SAFETENSORS FILE =====================//
+
+/**
+ * Parses a safetensors file to construct a TensorMap.
+ *
+ * It constructs a map of tensors based on the information found within the
+ * JSON-encoded header, including any metadata elements.
+ *
+ * @param firstBytes An array containing the first 8 bytes of a safetensors file.
+ * @param istream    An input stream positioned right after the initial 8-byte header.
+ * @param filePath   The full path of the original file used to create the input stream.
+ *                   (If the `istream` does not originate from a file, this parameter should be empty)
+ * @param fileSize   The total size of the file associated with the input stream.
+ *                   (Can be 0 but no validation of offsets or sizes will be performed) 
+ * @param byteBufferPosition The offset within the file where the raw tensor data buffer begins.
+ *                           (If set to 0, this position will be auto-detected)
+ *
+ * @return A TensorMap object populated with theinformation from the safetensors file,
+ *         or an empty map if any errors occur during processing.
+ */
 TensorMap
-TensorMap::_fromsafetensors(const uint8_t firstBytes[8],
-                            std::istream& istream,
-                            const Path&   filePath,   // = {},
-                            size_t        fileOffset  // = 0
+TensorMap::_fromsafetensors(const uint8_t   firstBytes[8],
+                            std::istream&   istream,
+                            const Path&     filePath,          // = {},
+                            std::streamsize fileSize,          // = 0
+                            std::streampos  byteBufferPosition // = 0
 ){
+    TensorMap tensorMap;
+
     // first 8 bytes are header size (64-bit little endian)
-    size_t headerSize = (static_cast<size_t>(firstBytes[0]) <<  0) |
-                        (static_cast<size_t>(firstBytes[1]) <<  8) |
-                        (static_cast<size_t>(firstBytes[2]) << 16) |
-                        (static_cast<size_t>(firstBytes[3]) << 24) |
-                        (static_cast<size_t>(firstBytes[4]) << 32) |
-                        (static_cast<size_t>(firstBytes[5]) << 40) |
-                        (static_cast<size_t>(firstBytes[6]) << 48) |
-                        (static_cast<size_t>(firstBytes[7]) << 56);
+    const size_t headerSize = (static_cast<size_t>(firstBytes[0]) <<  0) |
+                              (static_cast<size_t>(firstBytes[1]) <<  8) |
+                              (static_cast<size_t>(firstBytes[2]) << 16) |
+                              (static_cast<size_t>(firstBytes[3]) << 24) |
+                              (static_cast<size_t>(firstBytes[4]) << 32) |
+                              (static_cast<size_t>(firstBytes[5]) << 40) |
+                              (static_cast<size_t>(firstBytes[6]) << 48) |
+                              (static_cast<size_t>(firstBytes[7]) << 56);
 
+    // quickly calculates the maximum safe size of the header,
+    // since a block of memory will be reserved for it later
+    const size_t maxHeaderSize = fileSize>0
+                        ? std::max<size_t>(MaximumSafeHeaderSize, fileSize/500)
+                        : 10*MaximumSafeHeaderSize;
+    if( headerSize > maxHeaderSize ) { return tensorMap;  }
 
-    if( headerSize > 1024*1024 ) {
-        throw std::runtime_error("Header size is too large.");
-    }
-
-    // the path that will be shared by all tensors
-    auto ptrPath = std::make_shared<const Path>(filePath);
-
-    // allocate memory for header
+    // allocate a block of memory for the header
     auto buffer = std::make_unique<char[]>(headerSize + 4);
-    if( !buffer ) { throw std::runtime_error("Failed to allocate memory for header.");  }
+    if( !buffer ) { return tensorMap; }
 
     // read header from istream
-    istream.read(buffer.get(), headerSize); fileOffset+= headerSize;
-    if( istream.fail() ) { throw std::runtime_error("Failed to read header."); }
+    istream.read(buffer.get(), headerSize);
+    if( istream.fail() ) { return tensorMap; }
 
     // add 4 termination characters at the end of the buffer, just in case
     buffer[headerSize+0] = buffer[headerSize+1] = '\0';
     buffer[headerSize+2] = buffer[headerSize+3] = '\0';
 
+    // auto-detect byte-buffer offset (if not provided)
+    if( byteBufferPosition==0 ) {
+        byteBufferPosition = !filePath.empty() ? istream.tellg() : std::streampos{0};
+    }
+
     // in situ parsing the buffer into document
-    // ATTENTION: buffer will also be modified!
+    // ATTENTION: buffer will be modified!
     json::Document document;
     document.ParseInsitu( buffer.get() );
+    if( document.HasParseError() || !document.IsObject() ) {
+        return tensorMap;
+    }
 
-    // iterate over each object in the JSON document and create a TensorInfo
-    // for each one of them, except for the "__metadata__" object
-    TensorMap tensorMap;
-    for( auto& object : document.GetObject() ) {
-        StringView name{ object.name.GetString() };
-        if( name != "__metadata__" ) {
-            auto tensorInfo = _tensor_info_from_json(name, object.value, ptrPath, fileOffset);
-            if( tensorInfo.has_value() ) {
-                std::cout << *tensorInfo << std::endl;
-            }
+    // the path that will be shared by all tensors
+    auto ptrPath = std::make_shared<const Path>(filePath);
+
+    // iterate over each element in the JSON document and insert a `TensorInfo`
+    // for each one of them, except for "__metadata__" elements
+    auto jsonRootDict = document.GetObject();
+    for( const auto& jsonElement : jsonRootDict )
+    {
+        // the key/value pair must be a string/object pair
+        if( !jsonElement.name.IsString()  ) { continue; }
+        if( !jsonElement.value.IsObject() ) { continue; }
+
+        StringView tensorName{ jsonElement.name.GetString() };
+        if( tensorName == "__metadata__" )
+        {
+            /// TODO: parse checkpoint metadata
+            continue;
+        }
+        // parse the TensorInfo from the JSON element
+        // and insert it into the map
+        auto tensorInfo = _try_to_parse_tensor_info(tensorName,
+                                                    jsonElement.value,
+                                                    ptrPath,
+                                                    byteBufferPosition
+                                                    );
+        if ( tensorInfo ) {
+            tensorMap.insert( *tensorInfo );
         }
     }
     return tensorMap;
 }
 
-//================================ WRITING ================================//
- 
+
+//====================== WRITING TO SAFETENSORS FILE ======================//
+
+
+
+
 
 
 } // namespace tin

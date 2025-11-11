@@ -81,7 +81,7 @@ LsTensorsCommand::run()
 
     // print the names of all tensors in the file
     for( auto it: tensorMap ) {
-        std::cout << it.first << std::endl;
+        std::cout << it.first << " : " << it.second.dtype() << std::endl;
     }
 
     return 0;

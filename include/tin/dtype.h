@@ -29,16 +29,14 @@ namespace tin {
  */
 enum class DType
 {
+    UNKNOWN,  // Unknown or unsupported data type
+
+    //== STANDARD TYPES =====================================================
+    
     F64,      // 64-bit floating point
     F32,      // 32-bit floating point
     F16,      // 16-bit floating point (half precision)
     BF16,     // Brain floating point 
-    F8_E8M0,  // F8_E8M0 [https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf]
-    F8_E5M2,  // FP8     [https://arxiv.org/pdf/2209.05433.pdf]
-    F8_E4M3,  // FP8     [https://arxiv.org/pdf/2209.05433.pdf]
-    F6_E3M2,  // MXF6    [https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf]
-    F6_E2M3,  // MXF6    [https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf]
-    F4,       // MXF4    [https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf]
     I64,      // 64-bit signed integer
     I32,      // 32-bit signed integer
     I16,      // 16-bit signed integer
@@ -48,6 +46,15 @@ enum class DType
     U16,      // 16-bit unsigned integer
     U8,       // 8-bit unsigned integer
     BOOL,     // Boolean value
+
+    //== FLOAT-QUANTIZED TYPES ==============================================
+
+    F8_E8M0,  // F8_E8M0 [https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf]
+    F8_E5M2,  // FP8     [https://arxiv.org/pdf/2209.05433.pdf]
+    F8_E4M3,  // FP8     [https://arxiv.org/pdf/2209.05433.pdf]
+    F6_E3M2,  // MXF6    [https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf]
+    F6_E2M3,  // MXF6    [https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf]
+    F4,       // MXF4    [https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf]
 
     //== K-QUANTS ===========================================================
     //[https://github.com/ggml-org/llama.cpp/pull/1684]
@@ -88,6 +95,7 @@ enum class DType
     Q4_1,
     Q4_0
 };
+
 
 /**
  * Converts a C++ data type to its corresponding DType enum value.

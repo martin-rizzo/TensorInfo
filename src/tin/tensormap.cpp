@@ -20,19 +20,20 @@ namespace tin {
 
 
 TensorMap
-TensorMap::from_file(const Path& path)
+TensorMap::from_file(const Path& filePath)
 {
-    if( !std::filesystem::exists(path) ) {
+    if( !std::filesystem::exists(filePath) ) {
         throw std::runtime_error("File not found");
     }
-    auto istream = std::ifstream(path, std::ios_base::binary);
-    return TensorMap::from_stream(istream, path);
+    auto istream  = std::ifstream{ filePath, std::ios_base::binary };
+    auto fileSize = static_cast<std::streampos>( std::filesystem::file_size(filePath) );
+    return TensorMap::from_stream(istream, filePath, fileSize);
 }
 
 TensorMap
-TensorMap::from_stream(std::istream& istream,
-                       const Path&   path,   // = {},
-                       size_t        offset  // = 0)
+TensorMap::from_stream(std::istream&   istream,
+                       const Path&     filePath, // = {},
+                       std::streamsize fileSize  // = 0
 ){
 
     char     firstChars[8];
@@ -45,9 +46,9 @@ TensorMap::from_stream(std::istream& istream,
 
 
     if( ggufIdentifier == "GGUF" && 1 <= ggufVersion && ggufVersion <= 5)  {
-        return _fromgguf(firstBytes, istream, path, offset+8);
+        return _fromgguf(firstBytes, istream, filePath, fileSize);
     }
-    return _fromsafetensors(firstBytes, istream, path, offset+8);
+    return _fromsafetensors(firstBytes, istream, filePath, fileSize);
 }
 
 

@@ -32,8 +32,8 @@ class TensorInfo
 {
 // CONSTRUCTION
 public:
-    TensorInfo(StringView name, DType dtype, const Shape& shape, StringView            path   , size_t begin, size_t end);
-    TensorInfo(StringView name, DType dtype, const Shape& shape, SharedPtr<const Path> ptrPath, size_t begin, size_t end);
+    TensorInfo(StringView name, DType dtype, const Shape& shape, StringView            path   , std::streampos rawDataBegin, std::streampos rawDataEnd);
+    TensorInfo(StringView name, DType dtype, const Shape& shape, SharedPtr<const Path> ptrPath, std::streampos rawDataBegin, std::streampos rawDataEnd);
     TensorInfo(StringView name, const TensorInfo& other);
     TensorInfo(const TensorInfo& other) = default;
     TensorInfo(TensorInfo&& other) = default;
@@ -43,13 +43,14 @@ private:
 
 // ATTRIBUTES
 public:
-    [[nodiscard]] String       name()  const;
-    [[nodiscard]] DType        dtype() const;
-    [[nodiscard]] const Shape& shape() const;
-    [[nodiscard]] const Path&  path()  const;
-    [[nodiscard]] size_t       begin() const;
-    [[nodiscard]] size_t       end()   const;
-    [[nodiscard]] size_t       size()  const;
+    [[nodiscard]] String          name()           const;
+    [[nodiscard]] DType           dtype()          const;
+    [[nodiscard]] const Shape&    shape()          const;
+    [[nodiscard]] const Path&     path()           const;
+    [[nodiscard]] std::streampos  raw_data_begin() const;
+    [[nodiscard]] std::streampos  raw_data_end()   const;
+    [[nodiscard]] std::streamsize raw_data_size()  const;
+    [[nodiscard]] bool is_file_stored() const;
 
 // DEBUGGING
 public:
@@ -101,27 +102,35 @@ TensorInfo::path() const {
 /**
  * Returns the offset in bytes from the beginning of a tensor's raw data within the file.
  */
-inline size_t
-TensorInfo::begin() const {
-    return _ptrUnnamedTensorInfo->begin();
+inline std::streampos
+TensorInfo::raw_data_begin() const {
+    return _ptrUnnamedTensorInfo->raw_data_begin();
 }
 
 /**
  * Returns the offset in bytes at which the tensor's raw data ends within the file.
  */
-inline size_t
-TensorInfo::end() const {
-    return _ptrUnnamedTensorInfo->end();
+inline std::streampos
+TensorInfo::raw_data_end() const {
+    return _ptrUnnamedTensorInfo->raw_data_end();
 }
 
 /**
  * Returns the size, in bytes, of the tensor's raw data.
  */
-inline size_t
-TensorInfo::size() const {
-    return _ptrUnnamedTensorInfo->size();
+inline std::streamsize
+TensorInfo::raw_data_size() const {
+    return _ptrUnnamedTensorInfo->raw_data_size();
 }
 
+/**
+ * Returns true if this tensor is stored in a file, false otherwise.
+ * @details To access the file containing the tensor's raw data, use the path() method.
+ */
+inline bool
+TensorInfo::is_file_stored() const {
+    return _ptrUnnamedTensorInfo->is_file_stored();
+}
 
 } // namespace tin
 //============================= PRINT SUPPORT =============================//

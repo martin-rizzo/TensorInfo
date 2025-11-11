@@ -20,10 +20,11 @@ namespace tin {
 //================================ READING ================================//
 
 TensorMap
-TensorMap::_fromgguf(const uint8_t firstBytes[8],
-                     std::istream& istream,
-                     const Path&   filePath,   // = {},
-                     size_t        fileOffset  // = 0
+TensorMap::_fromgguf(const uint8_t   firstBytes[8],
+                     std::istream&   istream,
+                     const Path&     filePath,          // = {},
+                     std::streamsize fileSize,          // = 0,
+                     std::streampos  byteBufferPosition // = 0
 ){
     TensorMap tensorMap;
 

@@ -13,10 +13,12 @@
 #ifndef TIN_COMMON_H_
 #define TIN_COMMON_H_
 #include <memory>       // for std::shared_ptr
-#include <string>       // for std::string
-#include <filesystem>   // for std::filesystem::path
+#include <optional>     // for std::optional
 #include <vector>       // for std::vector
 #include <unordered_map>// for std::unordered_map
+#include <string>       // for std::string
+#include <string_view>  // for std::string_view
+#include <filesystem>   // for std::filesystem::path
 namespace tin {
 
 using DataPos = size_t;  ///< Position of data within a file or stream (bytes)
@@ -27,6 +29,7 @@ using DataPos = size_t;  ///< Position of data within a file or stream (bytes)
  | SIMPLE-CODE      | Description                                           | Implemented using           |
  | ---------------- | ----------------------------------------------------- | --------------------------- |
  | SharedPtr<T>     | Manages shared ownership of a `T` object.             | `std::shared_ptr<T>`        |
+ | Optional<T>      | A type that may or may not contain a value of `T`.    | `std::optional<T>`          |
  | Vector<T>        | A sequence of objects of type `T`.                    | `std::vector<T>`            |
  | Map<T>           | An associative container that maps keys to values.    | `std::unordered_map<T>`     |
  | String           | A string of characters.                               | `std::string`               |
@@ -38,6 +41,10 @@ using DataPos = size_t;  ///< Position of data within a file or stream (bytes)
 /** A shared pointer to an object of type T. (implemented using std::shared_ptr<T>) */
 template <typename T>
 using SharedPtr = std::shared_ptr<T>;
+
+/** An optional value of type T. (implemented using std::optional<T>) */
+template <typename T>
+using Optional = std::optional<T>;
 
 /** A vector of objects of type T. (implemented using std::vector<T>) */
 template <typename T>

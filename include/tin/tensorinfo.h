@@ -32,7 +32,7 @@ class TensorInfo
 {
 // CONSTRUCTION
 public:
-    TensorInfo(StringView name, DType dtype, const Shape& shape, StringView filePath, size_t begin, size_t end);
+    TensorInfo(StringView name, DType dtype, const Shape& shape, StringView            path   , size_t begin, size_t end);
     TensorInfo(StringView name, DType dtype, const Shape& shape, SharedPtr<const Path> ptrPath, size_t begin, size_t end);
     TensorInfo(StringView name, const TensorInfo& other);
     TensorInfo(const TensorInfo& other) = default;

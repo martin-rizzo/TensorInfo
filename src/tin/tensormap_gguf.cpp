@@ -8,6 +8,11 @@
 |- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 |                                 TensorInfo
 |   A C++ library for working with tensors & metadata in model checkpoints
+|- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+|
+|  GGUF Format Specification: https://github.com/ggml-org/ggml/blob/master/docs/gguf.md
+|  GGUF Format HuggingFace  : https://huggingface.co/docs/hub/en/gguf
+|
 \_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _*/
 #include <tin/tensormap.h>
 namespace tin {
@@ -15,9 +20,10 @@ namespace tin {
 //================================ READING ================================//
 
 TensorMap
-TensorMap::_fromgguf(std::istream& istream,
-                     const Path& path, // = {},
-                     size_t offset     // = 0
+TensorMap::_fromgguf(const uint8_t firstBytes[8],
+                     std::istream& istream,
+                     const Path&   filePath,   // = {},
+                     size_t        fileOffset  // = 0
 ){
     TensorMap tensorMap;
 

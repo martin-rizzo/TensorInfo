@@ -100,8 +100,8 @@ public:
 
 // IMPLEMENTATION
 private:
-    static TensorMap _fromsafetensors(std::istream& istream, const Path& path = {}, size_t offset = 0);
-    static TensorMap _fromgguf(std::istream& istream, const Path& path = {}, size_t offset = 0);
+    static TensorMap _fromsafetensors(const uint8_t firstBytes[8], std::istream& istream, const Path& path = {}, size_t offset = 0);
+    static TensorMap _fromgguf(const uint8_t firstBytes[8], std::istream& istream, const Path& path = {}, size_t offset = 0);
 private:
     std::unordered_map<String, TensorInfo> _map;
 };

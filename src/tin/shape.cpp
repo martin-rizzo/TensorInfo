@@ -13,6 +13,8 @@
 #include <tin/shape.h>
 namespace tin {
 
+//=============================== DEBUGGING ===============================//
+
 /**
  * Returns a string representation of the object for debugging purposes.
  *
@@ -21,20 +23,26 @@ namespace tin {
  * for use during debugging and error logging to easily understand or 
  * display the shape's structure.
  *
- * @return A string that provides a clear representation of the `Shape` object.
+ * @param brackets
+ *    Optional string containing the opening and closing brackets used to wrap
+ *    the dimension values. The first character is used as the opening bracket
+ *    and the second as the closing bracket.
+ * @return
+ *    A string providing a human-readable representation of the `Shape` object.
  */
 String
-Shape::to_string() const {
+Shape::to_string(StringView brackets // = "[]"
+) const {
     std::ostringstream os;
 
-    // wrap the dims in square brackets
-    os << "[";
+    // wrap the dims in brackets
+    os << brackets[0];
     bool first = true;
     for( auto dim : _dims ) {
-        if (first) { os << dim; first=false; }
-        else       { os << ", " << dim; }
+        if( first ) { first=false; } else { os << ", "; }
+        os << dim;
     }
-    os << "]";
+    os << brackets[1];
 
     // return the generated string
     return os.str();

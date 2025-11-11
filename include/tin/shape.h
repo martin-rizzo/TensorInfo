@@ -52,47 +52,63 @@ public:
     using const_reverse_iterator = std::vector<value_type>::const_reverse_iterator;
 
 
-// CONSTRUCTION/ASSIGNMENT/DESTRUCTION
+// CONSTRUCTION
 public:
+
 
     /**
      * Default constructor that creates an empty shape (0 dimensions).
      */
     Shape() noexcept = default;
 
+
     /**
      * Constructs a copy of the given shape.
      */
     explicit Shape(const Shape& other) = default;
+
 
     /**
      * Constructs a move copy of the given shape.
      */
     explicit Shape(Shape&& other) noexcept = default;
 
+
     /**
      * Constructs a shape from an initializer list.
-     * @param dims  An initializer list representing the shape's dimensions.
-     *
+     * @param dims An initializer list representing the shape's dimensions.
      * @code
      * auto shape = Shape{2, 3, 4}; // creates a Shape with dimensions 2 x 3 x 4.
      * @endcode
      */
-     constexpr Shape(std::initializer_list<value_type> dims)
-     : _dims(dims) { }
+    explicit constexpr Shape(std::initializer_list<value_type> dims)
+    : _dims(dims) { }
 
 
     /**
      * Constructs a shape from a vector of dimensions.
      * @param dims A `std::vector` containing the dimensions.
-     * 
      * @code
      * std::vector<unsigned int> shape_dims = {2, 3, 4};
      * auto shape = Shape{shape_dims};
      * @endcode
      */
-    explicit Shape(const std::vector<value_type>& dims)
+    explicit constexpr Shape(const std::vector<unsigned int>& dims)
     : _dims(dims) { }
+
+
+    /**
+     * Constructs a shape from a vector of dimensions (size_t variant).
+     *
+     * @param dims A `std::vector` containing the dimensions (as size_t elements).
+     * @code
+     * std::vector<size_t> shape_dims = {2, 3, 4};
+     * auto shape = Shape{shape_dims};
+     * @endcode
+     */
+    explicit constexpr Shape(const std::vector<size_t>& dims) {
+        for( auto d: dims ) { _dims.push_back( static_cast<value_type>(d) );  }
+    }
 
 
     /**
@@ -101,8 +117,8 @@ public:
      * @param dims A `std::span` that provides a view of the dimensions to be copied.
      */
     explicit constexpr Shape(std::span<const value_type> dims)
-        : _dims(dims.begin(), dims.end()) {
-    }
+    : _dims(dims.begin(), dims.end()) { }
+
 
 
 // GETTING INFORMATION
@@ -260,7 +276,7 @@ public:
 
 // DEBUGGING
 public:
-    [[nodiscard]] String to_string() const;
+    [[nodiscard]] String to_string(StringView brackets = "[]") const;
 
 
 // C++20

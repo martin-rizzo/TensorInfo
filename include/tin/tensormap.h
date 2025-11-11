@@ -15,6 +15,7 @@
 #include <istream>          // for std::istream
 #include <unordered_map>    // for std::unordered_map
 #include <tin/common.h>     // for String, Path
+#include <tin/readerror.h>  // for ReadError
 #include <tin/tensorinfo.h> // for TensorInfo
 namespace tin {
 
@@ -52,10 +53,10 @@ public:
     TensorMap& operator=(const TensorMap& other) = default;
     TensorMap& operator=(TensorMap&& other) noexcept = default;
 
-// LOADING
+// LOADING TENSORMAP
 public:
-    static TensorMap from_file(const Path& filePath);
-    static TensorMap from_stream(std::istream& istream, const Path& filePath = {}, std::streamsize fileSize = 0);
+    static TensorMap from_file(const Path& filePath, ReadError& outError) noexcept;
+    static TensorMap from_stream(std::istream& istream, ReadError& outError, const Path& filePath = {}, std::streamsize fileSize = 0) noexcept;
 
 // MODIFIERS
 public:
@@ -100,8 +101,8 @@ public:
 
 // IMPLEMENTATION
 private:
-    static TensorMap _fromsafetensors(const uint8_t firstBytes[8], std::istream& istream, const Path& filePath = {}, std::streamsize fileSize = 0, std::streampos byteBufferPosition = 0);
-    static TensorMap _fromgguf(const uint8_t firstBytes[8], std::istream& istream, const Path& filePath = {}, std::streamsize fileSize = 0, std::streampos byteBufferPosition = 0);
+    static TensorMap _fromsafetensors(const uint8_t firstBytes[8], std::istream& istream, ReadError& outError, const Path& filePath = {}, std::streamsize fileSize = 0, std::streampos byteBufferPosition = 0) noexcept;
+    static TensorMap _fromgguf(const uint8_t firstBytes[8], std::istream& istream, ReadError& outError, const Path& filePath = {}, std::streamsize fileSize = 0, std::streampos byteBufferPosition = 0) noexcept;
 private:
     std::unordered_map<String, TensorInfo> _map;
 };

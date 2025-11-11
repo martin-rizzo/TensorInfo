@@ -156,36 +156,38 @@ _try_to_parse_tensor_info(StringView            name,
 TensorMap
 TensorMap::_fromsafetensors(const uint8_t   firstBytes[8],
                             std::istream&   istream,
+                            ReadError&      outError,
                             const Path&     filePath,          // = {},
                             std::streamsize fileSize,          // = 0
                             std::streampos  byteBufferPosition // = 0
-){
+) noexcept {
     TensorMap tensorMap;
 
     // first 8 bytes are header size (64-bit little endian)
-    const size_t headerSize = (static_cast<size_t>(firstBytes[0]) <<  0) |
-                              (static_cast<size_t>(firstBytes[1]) <<  8) |
-                              (static_cast<size_t>(firstBytes[2]) << 16) |
-                              (static_cast<size_t>(firstBytes[3]) << 24) |
-                              (static_cast<size_t>(firstBytes[4]) << 32) |
-                              (static_cast<size_t>(firstBytes[5]) << 40) |
-                              (static_cast<size_t>(firstBytes[6]) << 48) |
-                              (static_cast<size_t>(firstBytes[7]) << 56);
+    const size_t headerSize{ (static_cast<size_t>(firstBytes[0]) <<  0) |
+                             (static_cast<size_t>(firstBytes[1]) <<  8) |
+                             (static_cast<size_t>(firstBytes[2]) << 16) |
+                             (static_cast<size_t>(firstBytes[3]) << 24) |
+                             (static_cast<size_t>(firstBytes[4]) << 32) |
+                             (static_cast<size_t>(firstBytes[5]) << 40) |
+                             (static_cast<size_t>(firstBytes[6]) << 48) |
+                             (static_cast<size_t>(firstBytes[7]) << 56)
+                           };
 
     // quickly calculates the maximum safe size of the header,
     // since a block of memory will be reserved for it later
     const size_t maxHeaderSize = fileSize>0
                         ? std::max<size_t>(MaximumSafeHeaderSize, fileSize/500)
                         : 10*MaximumSafeHeaderSize;
-    if( headerSize > maxHeaderSize ) { return tensorMap;  }
+    if( headerSize > maxHeaderSize ) { outError = ReadError::HeaderTooLarge; return tensorMap;  }
 
     // allocate a block of memory for the header
     auto buffer = std::make_unique<char[]>(headerSize + 4);
-    if( !buffer ) { return tensorMap; }
+    if( !buffer ) { outError = ReadError::MemoryAllocationFailed; return tensorMap; }
 
     // read header from istream
     istream.read(buffer.get(), headerSize);
-    if( istream.fail() ) { return tensorMap; }
+    if( istream.fail() ) { outError = ReadError::InvalidFormat; return tensorMap; }
 
     // add 4 termination characters at the end of the buffer, just in case
     buffer[headerSize+0] = buffer[headerSize+1] = '\0';
@@ -201,7 +203,7 @@ TensorMap::_fromsafetensors(const uint8_t   firstBytes[8],
     json::Document document;
     document.ParseInsitu( buffer.get() );
     if( document.HasParseError() || !document.IsObject() ) {
-        return tensorMap;
+        outError = ReadError::InvalidFormat; return tensorMap;
     }
 
     // the path that will be shared by all tensors

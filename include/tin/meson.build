@@ -9,6 +9,7 @@
 public_headers += files(
     'common.h',
     'dtype.h',
+    'readerror.h',
     'shape.h',
     'tensorinfo.h',
     'tensormap.h',

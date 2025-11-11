@@ -59,6 +59,8 @@ LsTensorsCommand::LsTensorsCommand(const LsTensorsArgs& args
 int
 LsTensorsCommand::run()
 {
+    ReadError readError;
+
     // determine if we should use color output
     const bool use_color = _args.use_color == UseColor::ALWAYS ||
                           (_args.use_color == UseColor::AUTO && is_terminal_output());
@@ -77,7 +79,8 @@ LsTensorsCommand::run()
     }
 
     // load the checkpoint file
-    const auto tensorMap = TensorMap::from_file( _args.input_file );
+    const auto tensorMap = TensorMap::from_file( _args.input_file, readError );
+    if( readError != ReadError::None ) { fatal_read_error( readError ); }
 
     // print the names of all tensors in the file
     for( auto it: tensorMap ) {
@@ -91,6 +94,40 @@ LsTensorsCommand::run()
 //================================ HELPERS ================================//
 
 void
-LsTensorsCommand::print_help() const {
+LsTensorsCommand::print_help() {
     std::cout << HELP << std::endl;
+}
+
+void
+LsTensorsCommand::fatal_read_error(ReadError readError) {
+    switch( readError )
+    {
+        case ReadError::FileNotFound:
+            Message::fatal_error("File not found.");
+
+        case ReadError::InvalidFormat:
+            Message::fatal_error("This is probably not a valid .safetensors or .gguf file.");
+
+        case ReadError::UnsupportedVersion:
+            Message::fatal_error("The file may be from an older or newer version of the format that this tool does not support.");
+
+        case ReadError::HeaderTooLarge:
+            Message::fatal_error("The file header may be corrupted, incomplete, or have other issues that prevent it from being read correctly.");
+
+        case ReadError::MemoryAllocationFailed:
+            Message::fatal_error("There may not be enough memory available to read this file, or it is corrupted in a way that prevents allocation of enough memory.");
+
+#if 0
+        case ReadError::InvalidMagicNumber: { Message::fatal_error("Invalid magic number. This is probably not a valid .safetensors or .gguf file."); } break;
+        case ReadError::InvalidHeaderSize: { Message::fatal_error("Invalid header size. This is probably not a valid .safetensors or .gguf file."); } break;
+        case ReadError::InvalidTensorName: { Message::fatal_error("Invalid tensor name. The tensor name may be too long, contain invalid characters, or have other issues."); } break;
+        case ReadError::InvalidTensorDataSize: { Message::fatal_error("Invalid tensor data size. This is probably not a valid .safetensors or .gguf file."); } break;
+        case ReadError::InvalidMetadata: { Message::fatal_error("Invalid metadata. The metadata may be corrupted, incomplete, or have other issues."); } break;
+        case ReadError::UnsupportedDataType: { Message::fatal_error("Unsupported data type. This tool does not support the specified data type in this file."); } break;
+        case ReadError::FileTooLarge: { Message::fatal_error("File too large. The file may be corrupted or have other issues that prevent it from being read correctly."); } break;
+        case ReadError::UnknownError: { Message::fatal_error("Unknown error. An unknown error occurred while reading the file."); } break;
+#endif
+        default:
+            Message::fatal_error("An unknown error occurred while reading the file.");
+    }
 }

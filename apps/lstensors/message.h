@@ -29,7 +29,7 @@ class Message
 public:
     static void warning(std::string_view message);
     static void error(std::string_view message);
-    static void fatal_error(std::string_view message, const std::vector<std::string_view>& informativeMessages = {}, int exitCode = 1);
+    [[noreturn]] static void fatal_error(std::string_view message, const std::vector<std::string_view>& informativeMessages = {}, int exitCode = 1);
 };
 
 

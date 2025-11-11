@@ -12,7 +12,8 @@
 #pragma once
 #ifndef LSTENSORS_COMMAND_H_
 #define LSTENSORS_COMMAND_H_
-#include "lstensors_args.h"
+#include <tin/readerror.h>  // for tin::ReadError
+#include "lstensors_args.h" // for LsTensorsArgs
 
 
 class LsTensorsCommand
@@ -25,7 +26,8 @@ public:
 
 // HELPERS
 public:
-    void print_help() const;
+    static void print_help();
+    [[noreturn]] static void fatal_read_error( tin::ReadError error );
 
 
 // IMPLEMENTATION

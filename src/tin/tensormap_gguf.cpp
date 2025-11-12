@@ -16,82 +16,105 @@
 \_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _*/
 #include <iostream>        // for std::istream, std::cout, std::endl
 #include <tin/tensormap.h> // for TensorMap
+#include "gguf/gguf.h"     // helper functions & constants GGUF file I/O
 namespace tin {
 using std::uint16_t;
 using std::uint32_t;
 using std::uint64_t;
+using std::nullopt;
 
-//================================ HELPERS ================================//
+// The maximum length of a key in the metadata section.
+static const size_t MaximumKeyLength = 65536;
 
-/**
- * Swaps the byte order of an unsigned integral type.
- *
- * This function performs a byte swap operation on the given unsigned integral
- * value. It supports 16-bit, 32-bit, and 64-bit integers by reversing their 
- * byte order (endianness).
- *
- * @tparam T The type of the unsigned integral value.
- *           Must be one of std::uint16_t, std::uint32_t, or std::uint64_t.
- * 
- * @param value The unsigned integer whose byte order is to be swapped.
- * @return The byte-swapped version of the input value.
- */
-template<std::unsigned_integral T>
-constexpr T byteswap(T value) noexcept {
-    if constexpr( sizeof(T) == 2 ) { // (2 bytes)
-        return static_cast<T>(
-            ((static_cast<uint16_t>(value) >> 8) & 0x00FF) | 
-            ((static_cast<uint16_t>(value) << 8) & 0xFF00)
-        );
-    } else if constexpr (sizeof(T) == 4) { // (4 bytes)
-        return static_cast<T>(
-            ((static_cast<uint32_t>(value) >> 24) & 0x000000FFUL) |
-            ((static_cast<uint32_t>(value) >> 8)  & 0x0000FF00UL) |
-            ((static_cast<uint32_t>(value) << 8)  & 0x00FF0000UL) |
-            ((static_cast<uint32_t>(value) << 24) & 0xFF000000UL)
-        );
-    } else if constexpr (sizeof(T) == 8) { // (8 bytes)
-        return static_cast<T>(
-            ((static_cast<uint64_t>(value) >> 56) & 0x00000000000000FFULL) |
-            ((static_cast<uint64_t>(value) >> 40) & 0x000000000000FF00ULL) |
-            ((static_cast<uint64_t>(value) >> 24) & 0x0000000000FF0000ULL) |
-            ((static_cast<uint64_t>(value) >> 8)  & 0x00000000FF000000ULL) |
-            ((static_cast<uint64_t>(value) << 8)  & 0x000000FF00000000ULL) |
-            ((static_cast<uint64_t>(value) << 24) & 0x0000FF0000000000ULL) |
-            ((static_cast<uint64_t>(value) << 40) & 0x00FF000000000000ULL) |
-            ((static_cast<uint64_t>(value) << 56) & 0xFF00000000000000ULL)
-        );
-    } else {
-        static_assert(sizeof(T) == 2 || sizeof(T) == 4 || sizeof(T) == 8, 
-                      "byteswap only supports integers of 16, 32 or 64 bits.");
+
+
+static ReadError
+_add_metadata(TensorMap& tensorMap, std::istream& istream, char* keyBuffer, size_t keyBufferSize)
+{
+    auto optionalKeyLength = GGUF::read_le_uint64(istream);
+    if( !optionalKeyLength ) { return ReadError::FileTruncated; }
+    auto keyLength = optionalKeyLength.value();
+
+    // if length is out of bounds, return with error
+    if( keyLength<=0 || keyBufferSize<keyLength ) { return ReadError::InvalidFormat; }
+    if( !istream.read(keyBuffer, keyLength)     ) { return ReadError::FileTruncated; }
+
+    auto key = StringView(keyBuffer, keyLength);
+
+    auto optionalValueType = GGUF::read_le_int32(istream);
+    if( !optionalValueType ) { return ReadError::FileTruncated; }
+    auto valueType = GGUF::METADATA_VALUE_TYPE{ optionalValueType.value() };
+
+    switch( valueType ) {
+        case GGUF::METADATA_VALUE_TYPE::BOOL:
+            std::cout << "tensorMap.metadata().add_bool";
+            break;
+
+        case GGUF::METADATA_VALUE_TYPE::UINT8: {
+            auto value = GGUF::read_uint8(istream);
+            if( !value ) { return ReadError::FileTruncated; }
+            std::cout << "tensorMap.metadata().add_uint(" << key << ", " << (*value) << ")";
+            } break;
+
+        case GGUF::METADATA_VALUE_TYPE::INT8: {
+            auto value = GGUF::read_int8(istream);
+            if( !value ) { return ReadError::FileTruncated; }
+            std::cout << "tensorMap.metadata().add_int(" << key << ", " << (*value) << ")";
+            } break;
+
+        case GGUF::METADATA_VALUE_TYPE::UINT16: {
+            auto value = GGUF::read_le_uint16(istream);
+            if( !value ) { return ReadError::FileTruncated; }
+            std::cout << "tensorMap.metadata().add_uint'"  << key << "', " << (*value) << ", UINT16)" << std::endl;
+            } break;
+
+        case GGUF::METADATA_VALUE_TYPE::INT16:
+            std::cout << "tensorMap.metadata().add_int";
+            break;
+        case GGUF::METADATA_VALUE_TYPE::UINT32: {
+            auto value = GGUF::read_le_uint32(istream);
+            if( !value ) { return ReadError::FileTruncated; }
+            std::cout << "tensorMap.metadata().add_uint('" << key << "', " << (*value) << ", UINT32)" << std::endl;
+            } break;
+
+        case GGUF::METADATA_VALUE_TYPE::INT32:
+            std::cout << "tensorMap.metadata().add_int";
+            break;
+
+        case GGUF::METADATA_VALUE_TYPE::UINT64: {
+            auto value = GGUF::read_le_uint64(istream);
+            if( !value ) { return ReadError::FileTruncated; }
+            std::cout << "tensorMap.metadata().add_uint('" << key << "', " << (*value) << ", UINT64)" << std::endl;
+            } break;
+
+            case GGUF::METADATA_VALUE_TYPE::INT64:
+            std::cout << "tensorMap.metadata().add_int";
+            break;
+
+        case GGUF::METADATA_VALUE_TYPE::FLOAT32: {
+            auto value = GGUF::read_float32(istream);
+            if( !value ) { return ReadError::FileTruncated; }
+            std::cout << "tensorMap.metadata().add_float('" << key << "', " << (*value) << ", FLOAT32)" << std::endl;
+            } break;
+
+        case GGUF::METADATA_VALUE_TYPE::FLOAT64: {
+            auto value = GGUF::read_float64(istream);
+            if( !value ) { return ReadError::FileTruncated; }
+            std::cout << "tensorMap.metadata().add_double('" << key << "', " << (*value) << ", FLOAT64)" << std::endl;
+            } break;
+
+        case GGUF::METADATA_VALUE_TYPE::STRING: {
+            auto value = GGUF::read_string(istream);
+            if( !value ) { return ReadError::FileTruncated; }
+            std::cout << "tensorMap.metadata().add_string('" << key << "', '" << (*value) << "')" << std::endl;
+            } break;
+
+        case GGUF::METADATA_VALUE_TYPE::ARRAY:
+            std::cout << "tensorMap.metadata().add_string_array";
+            break;
     }
-}
 
-#if 0
-static std::optional<uint32_t>
-_read_le_uint32(std::istream& istream) noexcept {
-    uint32_t value;
-    if( !istream.read(reinterpret_cast<char*>(&value), sizeof(value)) ) { return std::nullopt; }
-    if constexpr ( std::endian::native == std::endian::big ) { value = byteswap(value); }
-    return value;
-}
-#endif
-
-/**
- * Reads a little-endian uint64_t from an input stream.
- *
- * Attempts to read a 64-bit unsigned integer in little-endian format from
- * the given input stream. If reading fails, it returns an empty optional.
- * @param istream A reference to an input stream from which data is read.
- * @return An optional containing the uint64_t read from the stream,
- *         or an empty optional if reading fails.
- */
-static std::optional<uint64_t>
-_read_le_uint64(std::istream& istream) noexcept {
-    uint64_t value;
-    if( !istream.read(reinterpret_cast<char*>(&value), sizeof(value)) ) { return std::nullopt; }
-    if constexpr ( std::endian::native == std::endian::big ) { value = byteswap(value); }
-    return value;
+    return ReadError::None;
 }
 
 //======================== READING FROM GGUF FILE =========================//
@@ -120,12 +143,17 @@ TensorMap::_fromgguf(const uint8_t   firstBytes[8],
     if( ggufIdentifier != 0x46554747 ) { return tensorMap; /*"Invalid magic number."*/ }
     if( ggufVersion    != 3 )          { return tensorMap; /*"Unsupported version."*/  }
 
-    const auto tensorCount     = _read_le_uint64(istream);
-    const auto metadataKvCount = _read_le_uint64(istream);
+    const auto tensorCount     = GGUF::read_le_uint64(istream);
+    const auto metadataKvCount = GGUF::read_le_uint64(istream);
     if( !tensorCount || !metadataKvCount ) { outError = ReadError::InvalidFormat; return tensorMap; }
 
     std::cout << "## Number of tensors:  " << *tensorCount     << std::endl;
     std::cout << "## Number of metadata: " << *metadataKvCount << std::endl;
+
+    auto keyBuffer = std::make_unique<char[]>(MaximumKeyLength);
+    for( int i=0 ; i<22 ; ++i ) {
+        _add_metadata(tensorMap, istream, keyBuffer.get(), MaximumKeyLength);
+    }
 
     return tensorMap;
 }

@@ -21,6 +21,7 @@ enum class ReadError {
     UnsupportedVersion,     // The file format version is not supported by the library.
     HeaderTooLarge,         // The header size exceeds the maximum allowed value.
     MemoryAllocationFailed, // Failed to allocate memory for reading data.
+    FileTruncated,          // The file was truncated, incomplete, or unreadable at some point  
 };
 
 

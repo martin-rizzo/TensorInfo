@@ -117,6 +117,9 @@ LsTensorsCommand::fatal_read_error(ReadError readError) {
         case ReadError::MemoryAllocationFailed:
             Message::fatal_error("There may not be enough memory available to read this file, or it is corrupted in a way that prevents allocation of enough memory.");
 
+        case ReadError::FileTruncated:
+            Message::fatal_error("The file may be corrupted, incomplete, or have other issues that prevent it from being read correctly.");
+
 #if 0
         case ReadError::InvalidMagicNumber: { Message::fatal_error("Invalid magic number. This is probably not a valid .safetensors or .gguf file."); } break;
         case ReadError::InvalidHeaderSize: { Message::fatal_error("Invalid header size. This is probably not a valid .safetensors or .gguf file."); } break;
@@ -125,7 +128,6 @@ LsTensorsCommand::fatal_read_error(ReadError readError) {
         case ReadError::InvalidMetadata: { Message::fatal_error("Invalid metadata. The metadata may be corrupted, incomplete, or have other issues."); } break;
         case ReadError::UnsupportedDataType: { Message::fatal_error("Unsupported data type. This tool does not support the specified data type in this file."); } break;
         case ReadError::FileTooLarge: { Message::fatal_error("File too large. The file may be corrupted or have other issues that prevent it from being read correctly."); } break;
-        case ReadError::UnknownError: { Message::fatal_error("Unknown error. An unknown error occurred while reading the file."); } break;
 #endif
         default:
             Message::fatal_error("An unknown error occurred while reading the file.");

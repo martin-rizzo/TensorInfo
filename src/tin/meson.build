@@ -8,6 +8,7 @@
 #subdir('<none>')
 sources += files(
     'dtype.cpp',
+    'gguf' / 'gguf.cpp',
     'shape.cpp',
     'tensorinfo.cpp',
     'tensormap_gguf.cpp',

@@ -82,13 +82,33 @@ LsTensorsCommand::run()
     const auto tensorMap = TensorMap::from_file( _args.input_file, readError );
     if( readError != ReadError::None ) { fatal_read_error( readError ); }
 
-    // print the names of all tensors in the file
-    for( auto it: tensorMap ) {
-        std::cout << it.first << " : " << it.second.dtype() << std::endl;
+    if( _args.command == Command::PRINT_METADATA ) {
+        print_metadata(tensorMap);
+    }
+    else {
+        // print the names of all tensors in the file
+        for( auto it: tensorMap ) {
+            std::cout << it.first << " : " << it.second.dtype() << std::endl;
+        }
     }
 
     return 0;
 }
+
+
+//============================== SUBCOMMANDS ==============================//
+
+void
+LsTensorsCommand::print_metadata(const TensorMap& tensorMap
+) const {
+
+    std::cout << "Metadata:" << std::endl;
+    for( auto& it: tensorMap.metadata() ) {
+        std::cout << "  " << it.first << ": " << it.second.as_string() << std::endl;
+    }
+}
+
+//================================ HELPERS ================================//
 
 
 //================================ HELPERS ================================//
@@ -117,8 +137,8 @@ LsTensorsCommand::fatal_read_error(ReadError readError) {
         case ReadError::MemoryAllocationFailed:
             Message::fatal_error("There may not be enough memory available to read this file, or it is corrupted in a way that prevents allocation of enough memory.");
 
-        case ReadError::FileTruncated:
-            Message::fatal_error("The file may be corrupted, incomplete, or have other issues that prevent it from being read correctly.");
+        case ReadError::MissingData:
+            Message::fatal_error("The file is missing some required data, which may indicate corruption or have other issues that prevent it from being read correctly.");
 
 #if 0
         case ReadError::InvalidMagicNumber: { Message::fatal_error("Invalid magic number. This is probably not a valid .safetensors or .gguf file."); } break;

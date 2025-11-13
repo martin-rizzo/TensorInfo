@@ -28,92 +28,106 @@ static const size_t MaximumKeyLength = 65536;
 
 
 
+// inserta un key-value pair from the metadata section into a TensorMap.
 static ReadError
-_add_metadata(TensorMap& tensorMap, std::istream& istream, char* keyBuffer, size_t keyBufferSize)
+_insert_metadata(TensorMap& tensorMap, std::istream& istream, char* keyBuffer, size_t keyBufferSize)
 {
+    // read the key length
     auto optionalKeyLength = GGUF::read_le_uint64(istream);
-    if( !optionalKeyLength ) { return ReadError::FileTruncated; }
+    if( !optionalKeyLength ) { return ReadError::MissingData; }
     auto keyLength = optionalKeyLength.value();
 
     // if length is out of bounds, return with error
     if( keyLength<=0 || keyBufferSize<keyLength ) { return ReadError::InvalidFormat; }
-    if( !istream.read(keyBuffer, keyLength)     ) { return ReadError::FileTruncated; }
+    if( !istream.read(keyBuffer, keyLength)     ) { return ReadError::MissingData;   }
 
     auto key = StringView(keyBuffer, keyLength);
 
-    auto optionalValueType = GGUF::read_le_int32(istream);
-    if( !optionalValueType ) { return ReadError::FileTruncated; }
-    auto valueType = GGUF::METADATA_VALUE_TYPE{ optionalValueType.value() };
-
-    switch( valueType ) {
-        case GGUF::METADATA_VALUE_TYPE::BOOL:
-            std::cout << "tensorMap.metadata().add_bool";
-            break;
-
-        case GGUF::METADATA_VALUE_TYPE::UINT8: {
+    // read the value type
+    auto valueType = GGUF::read_le_int32(istream);
+    if( !valueType ) { return ReadError::MissingData; }
+    switch( GGUF::METADATA_VALUE_TYPE{ *valueType } )
+    {
+        // 1-byte value where 0 is false and 1 is true.
+        // anything else is invalid, and should be treated as either the model being invalid or the reader being buggy.
+        case GGUF::METADATA_VALUE_TYPE::BOOL: {
             auto value = GGUF::read_uint8(istream);
-            if( !value ) { return ReadError::FileTruncated; }
-            std::cout << "tensorMap.metadata().add_uint(" << key << ", " << (*value) << ")";
+            if( !value )      { return ReadError::MissingData;   }
+            if( *value >= 2 ) { return ReadError::InvalidFormat; }
+            tensorMap.metadata().set_boolean(key, *value!=0);
             } break;
 
         case GGUF::METADATA_VALUE_TYPE::INT8: {
             auto value = GGUF::read_int8(istream);
-            if( !value ) { return ReadError::FileTruncated; }
-            std::cout << "tensorMap.metadata().add_int(" << key << ", " << (*value) << ")";
+            if( !value ) { return ReadError::MissingData; }
+            tensorMap.metadata().set_integer(key, *value, MetaType::INT8);
+            } break;
+
+        case GGUF::METADATA_VALUE_TYPE::UINT8: {
+            auto value = GGUF::read_uint8(istream);
+            if( !value ) { return ReadError::MissingData; }
+            tensorMap.metadata().set_integer(key, *value, MetaType::UINT8);
+            } break;
+
+        case GGUF::METADATA_VALUE_TYPE::INT16: {
+            auto value = GGUF::read_le_int16(istream);
+            if( !value ) { return ReadError::MissingData; }
+            tensorMap.metadata().set_integer(key, *value, MetaType::INT16);
             } break;
 
         case GGUF::METADATA_VALUE_TYPE::UINT16: {
             auto value = GGUF::read_le_uint16(istream);
-            if( !value ) { return ReadError::FileTruncated; }
-            std::cout << "tensorMap.metadata().add_uint'"  << key << "', " << (*value) << ", UINT16)" << std::endl;
+            if( !value ) { return ReadError::MissingData; }
+            tensorMap.metadata().set_integer(key, *value, MetaType::UINT16);
             } break;
 
-        case GGUF::METADATA_VALUE_TYPE::INT16:
-            std::cout << "tensorMap.metadata().add_int";
-            break;
+        case GGUF::METADATA_VALUE_TYPE::INT32: {
+            auto value = GGUF::read_le_int32(istream);
+            if( !value ) { return ReadError::MissingData; }
+            tensorMap.metadata().set_integer(key, *value, MetaType::INT32);
+            } break;
+
         case GGUF::METADATA_VALUE_TYPE::UINT32: {
             auto value = GGUF::read_le_uint32(istream);
-            if( !value ) { return ReadError::FileTruncated; }
-            std::cout << "tensorMap.metadata().add_uint('" << key << "', " << (*value) << ", UINT32)" << std::endl;
+            if( !value ) { return ReadError::MissingData; }
+            tensorMap.metadata().set_integer(key, *value, MetaType::UINT32);
             } break;
 
-        case GGUF::METADATA_VALUE_TYPE::INT32:
-            std::cout << "tensorMap.metadata().add_int";
-            break;
+        case GGUF::METADATA_VALUE_TYPE::INT64: {
+            auto value = GGUF::read_le_int64(istream);
+            if( !value ) { return ReadError::MissingData; }
+            tensorMap.metadata().set_integer(key, *value, MetaType::INT64);
+            } break;
 
         case GGUF::METADATA_VALUE_TYPE::UINT64: {
             auto value = GGUF::read_le_uint64(istream);
-            if( !value ) { return ReadError::FileTruncated; }
-            std::cout << "tensorMap.metadata().add_uint('" << key << "', " << (*value) << ", UINT64)" << std::endl;
+            if( !value ) { return ReadError::MissingData; }
+            tensorMap.metadata().set_integer(key, *value, MetaType::UINT64);
             } break;
-
-            case GGUF::METADATA_VALUE_TYPE::INT64:
-            std::cout << "tensorMap.metadata().add_int";
-            break;
 
         case GGUF::METADATA_VALUE_TYPE::FLOAT32: {
             auto value = GGUF::read_float32(istream);
-            if( !value ) { return ReadError::FileTruncated; }
-            std::cout << "tensorMap.metadata().add_float('" << key << "', " << (*value) << ", FLOAT32)" << std::endl;
+            if( !value ) { return ReadError::MissingData; }
+            tensorMap.metadata().set_float(key, *value, MetaType::FLOAT32);
             } break;
 
         case GGUF::METADATA_VALUE_TYPE::FLOAT64: {
             auto value = GGUF::read_float64(istream);
-            if( !value ) { return ReadError::FileTruncated; }
-            std::cout << "tensorMap.metadata().add_double('" << key << "', " << (*value) << ", FLOAT64)" << std::endl;
+            if( !value ) { return ReadError::MissingData; }
+            tensorMap.metadata().set_float(key, *value, MetaType::FLOAT64);
             } break;
 
         case GGUF::METADATA_VALUE_TYPE::STRING: {
             auto value = GGUF::read_string(istream);
-            if( !value ) { return ReadError::FileTruncated; }
-            std::cout << "tensorMap.metadata().add_string('" << key << "', '" << (*value) << "')" << std::endl;
+            if( !value ) { return ReadError::MissingData; }
+            tensorMap.metadata().set_string(key, *value);
             } break;
 
         case GGUF::METADATA_VALUE_TYPE::ARRAY:
-            std::cout << "tensorMap.metadata().add_string_array";
+            std::cout << "## ignoring: " << key << std::endl;
+            GGUF::ignore_array(istream);
             break;
     }
-
     return ReadError::None;
 }
 
@@ -151,8 +165,9 @@ TensorMap::_fromgguf(const uint8_t   firstBytes[8],
     std::cout << "## Number of metadata: " << *metadataKvCount << std::endl;
 
     auto keyBuffer = std::make_unique<char[]>(MaximumKeyLength);
-    for( int i=0 ; i<22 ; ++i ) {
-        _add_metadata(tensorMap, istream, keyBuffer.get(), MaximumKeyLength);
+    for( int i=0 ; i<metadataKvCount ; ++i ) {
+        if( outError != ReadError::None ) { break; }
+        outError = _insert_metadata(tensorMap, istream, keyBuffer.get(), MaximumKeyLength);
     }
 
     return tensorMap;

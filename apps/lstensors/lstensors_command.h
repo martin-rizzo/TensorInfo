@@ -13,6 +13,7 @@
 #ifndef LSTENSORS_COMMAND_H_
 #define LSTENSORS_COMMAND_H_
 #include <tin/readerror.h>  // for tin::ReadError
+#include <tin/tensormap.h>  // for tin::TensorMap
 #include "lstensors_args.h" // for LsTensorsArgs
 
 
@@ -23,6 +24,10 @@ public:
     LsTensorsCommand(const LsTensorsArgs& args);
     [[nodiscard]] int run();
 
+
+// SUBCOMMANDS
+public:
+    void print_metadata(const tin::TensorMap& tensorMap) const;
 
 // HELPERS
 public:

@@ -1,0 +1,92 @@
+/*
+| File    : metavalue.h
+| Purpose : Each value stored in the metadata information of the checkpoint.
+| Author  : Martin Rizzo | <martinrizzo@gmail.com>
+| Date    : Nov 12, 2025
+| Repo    : https://github.com/martin-rizzo/TensorInfo
+| License : MIT
+|- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+|                                 TensorInfo
+|   A C++ library for working with tensors & metadata in model checkpoints
+\_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _*/
+#pragma once
+#ifndef TIN_METAVALUE_H_
+#define TIN_METAVALUE_H_
+#include <tin/common.h>
+#include <tin/metatype.h>
+namespace tin {
+
+
+class MetaValue
+{
+
+// CONSTRUCTION
+public:
+    explicit MetaValue(bool           value , MetaType metatype = MetaType::BOOL   ) noexcept;
+    explicit MetaValue(long int       value , MetaType metatype = MetaType::INT32  ) noexcept;
+    explicit MetaValue(long unsigned  value , MetaType metatype = MetaType::UINT32 ) noexcept;
+    explicit MetaValue(double         value , MetaType metatype = MetaType::FLOAT32) noexcept;
+    explicit MetaValue(StringView     value , MetaType metatype = MetaType::STRING ) noexcept;
+    //explicit MetaValue(Vector<String> vector, MetaType metatype = MetaType::STRING ) noexcept;
+public:
+    explicit MetaValue(MetaValue&& other) noexcept;
+
+
+// CONVERSIONS
+public:
+    bool           as_boolean (bool          default_ = false) const noexcept;
+    long int       as_integer (long int      default_ = 0L   ) const noexcept;
+    long unsigned  as_unsigned(long unsigned default_ = 0UL  ) const noexcept;
+    double         as_float   (double        default_ = 0.0  ) const noexcept;
+    String         as_string  (StringView    default_ = ""   ) const noexcept;
+    //Vector<String> as_string_vector() const noexcept;
+    
+// TYPE HINTS
+public:
+    MetaType original_metatype() const {
+        return _metatype;
+    }
+
+
+// IMPLEMENTATION
+private:
+    enum class Type {
+        NONE,
+        BOOLEAN,
+        LONG_INT,
+        LONG_UNSIGNED,
+        DOUBLE_PRECISION,
+        STRING
+        //STRING_VECTOR,
+        //METAVALUE_VECTOR
+    };
+private:
+    typedef union {
+        bool           boolean;
+        long int       long_int;
+        long unsigned  long_unsigned;
+        double         double_precision;
+    } ValueUnion;
+private:
+    Type           _type;
+    ValueUnion     _value;
+    String         _value_string;
+    MetaType       _metatype;
+};
+
+
+//============================= CONSTRUCTION ==============================//
+
+inline
+MetaValue::MetaValue(MetaValue&& other) noexcept
+: _type { other._type  },
+  _value{ other._value },
+  _value_string{ std::move(other._value_string) },
+  _metatype{ other._metatype }
+{
+    other._type = Type::NONE;
+}
+
+
+}      // namespace tin
+#endif // TIN_METAVALUE_H_

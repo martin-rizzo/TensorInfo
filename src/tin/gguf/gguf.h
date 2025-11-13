@@ -15,48 +15,12 @@
 #include <tin/common.h>
 namespace tin {
 
-//=============================== CONSTANTS ===============================//
-// [https://github.com/ggml-org/ggml/blob/master/docs/gguf.md]
-
-enum gguf_metadata_value_type: uint32_t {
-    // The value is a 8-bit unsigned integer.
-    GGUF_METADATA_VALUE_TYPE_UINT8 = 0,
-    // The value is a 8-bit signed integer.
-    GGUF_METADATA_VALUE_TYPE_INT8 = 1,
-    // The value is a 16-bit unsigned little-endian integer.
-    GGUF_METADATA_VALUE_TYPE_UINT16 = 2,
-    // The value is a 16-bit signed little-endian integer.
-    GGUF_METADATA_VALUE_TYPE_INT16 = 3,
-    // The value is a 32-bit unsigned little-endian integer.
-    GGUF_METADATA_VALUE_TYPE_UINT32 = 4,
-    // The value is a 32-bit signed little-endian integer.
-    GGUF_METADATA_VALUE_TYPE_INT32 = 5,
-    // The value is a 32-bit IEEE754 floating point number.
-    GGUF_METADATA_VALUE_TYPE_FLOAT32 = 6,
-    // The value is a boolean.
-    // 1-byte value where 0 is false and 1 is true.
-    // Anything else is invalid, and should be treated as either the model being invalid or the reader being buggy.
-    GGUF_METADATA_VALUE_TYPE_BOOL = 7,
-    // The value is a UTF-8 non-null-terminated string, with length prepended.
-    GGUF_METADATA_VALUE_TYPE_STRING = 8,
-    // The value is an array of other values, with the length and type prepended.
-    ///
-    // Arrays can be nested, and the length of the array is the number of elements in the array, not the number of bytes.
-    GGUF_METADATA_VALUE_TYPE_ARRAY = 9,
-    // The value is a 64-bit unsigned little-endian integer.
-    GGUF_METADATA_VALUE_TYPE_UINT64 = 10,
-    // The value is a 64-bit signed little-endian integer.
-    GGUF_METADATA_VALUE_TYPE_INT64 = 11,
-    // The value is a 64-bit IEEE754 floating point number.
-    GGUF_METADATA_VALUE_TYPE_FLOAT64 = 12,
-};
-
-//============================ GGUF FUNCTIONS =============================//
 
 class GGUF
 {
 public:
 
+    // [https://github.com/ggml-org/ggml/blob/master/docs/gguf.md]
     enum class METADATA_VALUE_TYPE {
         // The value is a 8-bit unsigned integer.
         UINT8 = 0,
@@ -109,10 +73,36 @@ public:
 
 // READING OTHER VALUES
 public:
-    static Optional<String>         read_string(std::istream& istream) noexcept;
-    static Optional<Vector<String>> read_string_array(std::istream& istream) noexcept;
+    static Optional<String> read_string(std::istream& istream) noexcept;
+    static Optional<METADATA_VALUE_TYPE> read_value_type(std::istream& istream) noexcept;
+
+// IGNORING VALUES
+public:
+    static void ignore_string(std::istream& istream) noexcept;
+    static void ignore_array(std::istream& istream) noexcept;
 };
 
-
 }      // namespace tin
+
+
+inline std::string_view
+to_string( ::tin::GGUF::METADATA_VALUE_TYPE type ) {
+    switch( type ) {
+        case ::tin::GGUF::METADATA_VALUE_TYPE::UINT8:   return "uint8";
+        case ::tin::GGUF::METADATA_VALUE_TYPE::INT8:    return "int8";
+        case ::tin::GGUF::METADATA_VALUE_TYPE::UINT16:  return "uint16";
+        case ::tin::GGUF::METADATA_VALUE_TYPE::INT16:   return "int16";
+        case ::tin::GGUF::METADATA_VALUE_TYPE::UINT32:  return "uint32";
+        case ::tin::GGUF::METADATA_VALUE_TYPE::INT32:   return "int32";
+        case ::tin::GGUF::METADATA_VALUE_TYPE::FLOAT32: return "float32";
+        case ::tin::GGUF::METADATA_VALUE_TYPE::BOOL:    return "bool";
+        case ::tin::GGUF::METADATA_VALUE_TYPE::STRING:  return "string";
+        case ::tin::GGUF::METADATA_VALUE_TYPE::ARRAY:   return "array";
+        case ::tin::GGUF::METADATA_VALUE_TYPE::UINT64:  return "uint64";
+        case ::tin::GGUF::METADATA_VALUE_TYPE::INT64:   return "int64";
+        case ::tin::GGUF::METADATA_VALUE_TYPE::FLOAT64: return "float64";
+        default:return "<unknown>";
+    }
+}
+
 #endif // TIN_GGUF_HELPER_H

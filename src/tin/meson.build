@@ -7,8 +7,11 @@
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #subdir('<none>')
 sources += files(
-    'dtype.cpp',
     'gguf' / 'gguf.cpp',
+    'dtype.cpp',
+    'metadata.cpp',
+    'metatype.cpp',
+    'metavalue.cpp',
     'shape.cpp',
     'tensorinfo.cpp',
     'tensormap_gguf.cpp',

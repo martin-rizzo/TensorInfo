@@ -17,6 +17,7 @@
 #include <tin/common.h>     // for String, Path
 #include <tin/readerror.h>  // for ReadError
 #include <tin/tensorinfo.h> // for TensorInfo
+#include <tin/metadata.h>   // for Metadata
 namespace tin {
 
 
@@ -57,6 +58,17 @@ public:
 public:
     static TensorMap from_file(const Path& filePath, ReadError& outError) noexcept;
     static TensorMap from_stream(std::istream& istream, ReadError& outError, const Path& filePath = {}, std::streamsize fileSize = 0) noexcept;
+
+// METADATA ACCESS
+public:
+    [[nodiscard]] Metadata& metadata() noexcept {
+        return _metadata;
+    }
+    
+    [[nodiscard]] const Metadata& metadata() const noexcept {
+        return _metadata;
+    }
+
 
 // MODIFIERS
 public:
@@ -105,6 +117,7 @@ private:
     static TensorMap _fromgguf(const uint8_t firstBytes[8], std::istream& istream, ReadError& outError, const Path& filePath = {}, std::streamsize fileSize = 0, std::streampos byteBufferPosition = 0) noexcept;
 private:
     std::unordered_map<String, TensorInfo> _map;
+    Metadata                               _metadata;
 };
 
 

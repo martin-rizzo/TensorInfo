@@ -168,5 +168,67 @@ GGUF::read_string(std::istream& istream) noexcept {
     return string;
 }
 
+Optional<GGUF::METADATA_VALUE_TYPE>
+GGUF::read_value_type(std::istream& istream) noexcept {
+    const auto value = read_le<std::uint32_t>(istream);
+    return value ? Optional<GGUF::METADATA_VALUE_TYPE>{ static_cast<GGUF::METADATA_VALUE_TYPE>(*value) } : nullopt;
+}
+
+
+//============================= IGNORING VALUES ============================//
+
+
+void
+GGUF::ignore_string(std::istream& istream) noexcept {
+    auto length = read_le_uint64(istream);
+    if( length && istream.good() ) { istream.ignore(*length); }
+}
+
+void
+GGUF::ignore_array(std::istream& istream) noexcept {
+    auto valueType = read_value_type(istream);
+    if( !valueType ) { return; }
+
+    auto arrayLength = read_le_uint64(istream);
+    if( !arrayLength ) { return; }
+
+    // debug message
+    std::cout << "## skipping array of " << to_string(*valueType) << "[" << *arrayLength << "]" << std::endl;
+
+    switch( *valueType )
+    {
+        
+        case METADATA_VALUE_TYPE::BOOL:
+        case METADATA_VALUE_TYPE::INT8:
+        case METADATA_VALUE_TYPE::UINT8:
+            istream.ignore( *arrayLength );
+            break;
+
+        case METADATA_VALUE_TYPE::INT16:
+        case METADATA_VALUE_TYPE::UINT16:
+            istream.ignore( *arrayLength * 2 );
+            break;
+
+        case METADATA_VALUE_TYPE::INT32:
+        case METADATA_VALUE_TYPE::UINT32:
+        case METADATA_VALUE_TYPE::FLOAT32:
+            istream.ignore( *arrayLength * 4 );
+            break;
+
+        case METADATA_VALUE_TYPE::INT64:
+        case METADATA_VALUE_TYPE::UINT64:
+        case METADATA_VALUE_TYPE::FLOAT64:
+            istream.ignore( *arrayLength * 8 );
+            break;
+
+        case METADATA_VALUE_TYPE::STRING:
+            for( auto c = *arrayLength ; c ; --c ) { ignore_string(istream); }
+            break;
+
+        case METADATA_VALUE_TYPE::ARRAY:
+            for( auto c = *arrayLength ; c ; --c ) { ignore_array(istream); }
+            break;
+    }
+}
 
 } // namespace tin

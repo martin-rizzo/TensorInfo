@@ -1,6 +1,6 @@
 /*
 | File    : metatype.h
-| Purpose : Enumeration of types of values stored in the metadata of a model checkpoint.
+| Purpose : Enumerate the different metadata types stored within model checkpoints.
 | Author  : Martin Rizzo | <martinrizzo@gmail.com>
 | Date    : Nov 12, 2025
 | Repo    : https://github.com/martin-rizzo/TensorInfo
@@ -14,51 +14,53 @@
 #define TIN_METATYPE_H_
 namespace tin {
 
+/**
+ * Enumerates the different metadata types stored within model checkpoints.
+ * 
+ * The TensorInfo library supports five main data types (boolean, integer,
+ * unsigned, float, and string), but formats like "GGUF" allow for a broader
+ * range of metadata types. To keep track of the original format, this enum
+ * class is used, which can be accessed via:
+ *  `tensorMap.metadata().get("name.of.metadata").original_metatype()`.
+ */
+enum class MetaType
+{
+        // Boolean
+        BOOL,             ///< Original value is a 8-bit integer, zero or one. (use `as_bool()` to get the value).
 
-enum class MetaType {
+        // Signed Integers
+        INT8,             ///< Original value is a 8-bit signed integer. (use `as_integer()` to get the value).
+        INT16,            ///< Original value is a 16-bit signed little-endian integer. (use `as_integer()` to get the value).
+        INT32,            ///< Original value is a 32-bit signed little-endian integer. (use `as_integer()` to get the value).
+        INT64,            ///< Original value is a 64-bit signed little-endian integer. (use `as_integer()` to get the value).
 
-        // The value is a boolean.
-        // 1-byte value where 0 is false and 1 is true.
-        // Anything else is invalid, and should be treated as either the model being invalid or the reader being buggy.
-        BOOL,
+        // Unsigned Integers
+        UINT8,            ///< Original value is a 8-bit unsigned integer. (use `as_unsigned()` to get the value).
+        UINT16,           ///< Original value is a 16-bit unsigned little-endian integer. (use `as_unsigned()` to get the value).
+        UINT32,           ///< Original value is a 32-bit unsigned little-endian integer. (use `as_unsigned()` to get the value).
+        UINT64,           ///< Original value is a 64-bit unsigned little-endian integer. (use `as_unsigned()` to get the value).
 
-        INT8, //< Value is a 8bit signed integer. `metadata().insert_integer(k, value, MetaType::INT8)`
+        // Floating Points
+        FLOAT32,          ///< Original value is a 32-bit IEEE754 floating point number. (use `as_float()` to get the value).
+        FLOAT64,          ///< Original value is a 64-bit IEEE754 floating point number. (use `as_float()` to get the value).
 
-        INT16, //< Value is 16bit signed LE integer. `metadata().insert_integer(k, value, MetaType::INT16)`
+        // Strings
+        STRING,           ///< Original value is a string. (use `as_string()` to get the value).
 
-        // The value is a 32-bit signed little-endian integer.
-        INT32,
-
-        // The value is a 64-bit signed little-endian integer.
-        INT64,
-
-        // The value is a 8-bit unsigned integer.
-        UINT8,
-        
-        // The value is a 16-bit unsigned little-endian integer.
-        UINT16,
-
-        // The value is a 32-bit unsigned little-endian integer.
-        UINT32 = 4,
-
-        // The value is a 64-bit unsigned little-endian integer.
-        UINT64 = 10,
-
-        // The value is a 32-bit IEEE754 floating point number.
-        FLOAT32 = 6,
-
-        // The value is a 64-bit IEEE754 floating point number.
-        FLOAT64 = 12,
-
-        // The value is a UTF-8 non-null-terminated string, with length prepended.
-        STRING = 8,
-        // The value is an array of other values, with the length and type prepended.
-        ///
-        // Arrays can be nested, and the length of the array is the number of elements in the array, not the number of bytes.
-        STRING_ARRAY = 9,
-
-
-
+        // Arrays is quite complex because GGUF even supports nested arrays!
+        ARRAY_OF_BOOLS,   ///< Original value is an array of booleans.
+        ARRAY_OF_INT8,    ///< Original value is an array of 8-bit signed integers.
+        ARRAY_OF_INT16,   ///< Original value is an array of 16-bit signed little-endian integers.
+        ARRAY_OF_INT32,   ///< Original value is an array of 32-bit signed little-endian integers.
+        ARRAY_OF_INT64,   ///< Original value is an array of 64-bit signed little-endian integers.
+        ARRAY_OF_UINT8,   ///< Original value is an array of 8-bit unsigned integers.
+        ARRAY_OF_UINT16,  ///< Original value is an array of 16-bit unsigned little-endian integers.
+        ARRAY_OF_UINT32,  ///< Original value is an array of 32-bit unsigned little-endian integers.
+        ARRAY_OF_UINT64,  ///< Original value is an array of 64-bit unsigned little-endian integers.
+        ARRAY_OF_FLOAT32, ///< Original value is an array of 32-bit IEEE754 floating point numbers.
+        ARRAY_OF_FLOAT64, ///< Original value is an array of 64-bit IEEE754 floating point numbers.
+        ARRAY_OF_STRINGS, ///< Original value is an array of strings.
+        ARRAY_OF_ARRAYS,  ///< Original value is a nested array (!!).
 };
 
 

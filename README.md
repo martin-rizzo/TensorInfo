@@ -29,46 +29,54 @@ TensorInfo allows developers to load and inspect tensor maps from different file
 - **TensorMap**: A high-level interface for managing tensor data and metadata.
 - **TensorTree**: A hierarchical navigation system for exploring tensor structures within the loaded files.
 
-
 ## Managing Checkpoint Metadata
 
-This section outlines how to interact with metadata using `TensorMap`.
-
-### Accessing Metadata Values
-
-Retrieve a specific metadata value using the `get` method from `tensorMap.metadata()`, specifying the key name. If needed, provide a default value when the key is missing.
+### Loading Metadata  
+To load metadata, follow the same procedure as for loading regular checkpoint data.
 
 **Example:**
 ```cpp
-auto contextLength = tensorMap.metadata().get("llama.context_length").as_integer(default_value);
+ReadError readError;
+
+// Load the checkpoint file
+const auto tensorMap = TensorMap::from_file("/path/to/checkpoint.safetensors", readError);
+if (readError != ReadError::None) { fatal_read_error(readError); }
 ```
-This retrieves an integer value for `"llama.context_length"`, using `default_value` if absent.
 
-### Modifying Metadata Values
+### Accessing Metadata Values  
+To access checkpoint metadata, utilize `tensorMap.metadata()`, which provides the necessary methods.\
+To retrieve a specific value, use the `get` method by specifying the key name and providing a default if needed.
 
-Update or set metadata values with the `set_integer` method, specifying the key and new value.
-
-**Example:**
+**Example:**  
 ```cpp
+// Retrieve an integer for `"llama.context_length"`, using `defvalue` if absent.
+auto contextLength = tensorMap.metadata().get("llama.context_length").as_integer(defvalue);
+
+// Additional examples using as_string and as_float
+auto exampleString = tensorMap.metadata().get("example.key").as_string(defaultString);
+auto exampleFloat = tensorMap.metadata().get("example.floatKey").as_float(defaultFloat);
+```
+
+### Modifying Metadata Values  
+To update or set metadata values, use methods such as `set_integer`, specifying the key and the new value.
+
+**Example:**  
+```cpp
+// Set `"llama.context_length"` to `8192`.
 tensorMap.metadata().set_integer("llama.context_length", 8 * 1024);
 ```
-This sets `"llama.context_length"` to `8192`.
 
-### Enumerating Metadata Values
+### Enumerating Metadata Values  
+To iterate through all metadata entries, use a loop to access each as a key-value pair.
 
-Iterate through all metadata entries using a loop, accessing each as a key-value pair.
-
-**Example:**
+**Example:**  
 ```cpp
+// Print each metadata key and its string representation.
 std::cout << "Metadata:" << std::endl;
 for (auto& it : tensorMap.metadata()) {
     std::cout << "  " << it.first << ": " << it.second.to_string() << std::endl;
 }
 ```
-This prints each metadata key and its string representation.
-
-In summary, `tensorMap.metadata()` provides efficient tools for accessing and modifying checkpoint metadata, crucial for model configuration and tuning.
-
 
 ## License
 

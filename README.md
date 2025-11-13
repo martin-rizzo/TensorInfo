@@ -30,11 +30,10 @@ TensorInfo allows developers to load and inspect tensor maps from different file
 - **TensorTree**: A hierarchical navigation system for exploring tensor structures within the loaded files.
 
 ## Managing Checkpoint Metadata
+To access checkpoint metadata, utilize `tensorMap.metadata()`, which provides the necessary methods.\
 
 ### Loading Metadata  
-To load metadata, follow the same procedure as for loading regular checkpoint data.
-
-**Example:**
+To load metadata, follow the same procedure as for loading regular checkpoint data:
 ```cpp
 ReadError readError;
 
@@ -43,18 +42,18 @@ const auto tensorMap = TensorMap::from_file("/path/to/checkpoint.safetensors", r
 if (readError != ReadError::None) { fatal_read_error(readError); }
 ```
 
-### Accessing Metadata Values  
-To access checkpoint metadata, utilize `tensorMap.metadata()`, which provides the necessary methods.\
-To retrieve a specific value, use the `get` method by specifying the key name and providing a default if needed.
-
-**Example:**  
+### Accessing Metadata Values
+Use the `get` method in conjunction with an appropriate `as_*()` method for the desired data type:
 ```cpp
-// Retrieve an integer for `"llama.context_length"`, using `defvalue` if absent.
-auto contextLength = tensorMap.metadata().get("llama.context_length").as_integer(defvalue);
+// Retrieve "llama.context_length" as an integer if you know this key exists
+auto contextLength = tensorMap.metadata().get("llama.context_length").as_integer();
 
-// Additional examples using as_string and as_float
-auto exampleString = tensorMap.metadata().get("example.key").as_string(defaultString);
-auto exampleFloat = tensorMap.metadata().get("example.floatKey").as_float(defaultFloat);
+// Each of the `as_*()` methods can have a default value used when the key does not exist
+auto exampleBool     = tensorMap.metadata().get("example.bool").as_boolean(true);
+auto exampleInteger  = tensorMap.metadata().get("example.integer").as_integer(-200);
+auto exampleUnsigned = tensorMap.metadata().get("example.unsigned").as_unsigned(0);
+auto exampleFloat    = tensorMap.metadata().get("example.float").as_float(12.3);
+auto exampleString   = tensorMap.metadata().get("example.string").as_string("empty");
 ```
 
 ### Modifying Metadata Values  

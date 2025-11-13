@@ -30,20 +30,28 @@ TensorInfo allows developers to load and inspect tensor maps from different file
 - **TensorTree**: A hierarchical navigation system for exploring tensor structures within the loaded files.
 
 ## Managing Checkpoint Metadata
-To access checkpoint metadata, utilize `tensorMap.metadata()`, which provides the necessary methods.\
+To access checkpoint metadata, utilize __`tensorMap.metadata()`__ as it provides the necessary methods.
 
 ### Loading Metadata  
 To load metadata, follow the same procedure as for loading regular checkpoint data:
 ```cpp
-ReadError readError;
+#include <tin/tensormap.h>
+using namespace tin;
 
-// Load the checkpoint file
-const auto tensorMap = TensorMap::from_file("/path/to/checkpoint.safetensors", readError);
-if (readError != ReadError::None) { fatal_read_error(readError); }
+void my_function(void) {
+    ReadError readError;
+
+    // Attempt to load the file
+    const auto tensorMap = TensorMap::from_file("/path/to/checkpoint.gguf", readError);
+    if( readError != ReadError::None ) { 
+        fatal_read_error(readError);
+    }
+    ....
+}
 ```
 
 ### Accessing Metadata Values
-Use the `get` method in conjunction with an appropriate `as_*()` method for the desired data type:
+Use the __`get`__ method in conjunction with an appropriate __`as_*()`__ method for the desired data type:
 ```cpp
 // Retrieve "llama.context_length" as an integer if you know this key exists
 auto contextLength = tensorMap.metadata().get("llama.context_length").as_integer();

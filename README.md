@@ -1,6 +1,11 @@
 <div align="center">
   
 # 🧭 TensorInfo (tin::)
+[![Platform](https://img.shields.io/badge/language%3A-C++20-B8860B)](#)
+[![Platform](https://img.shields.io/badge/platform%3A-multiplatform-007BFF)](#)
+[![License](https://img.shields.io/github/license/martin-rizzo/TensorInfo?label=license%3A&color=28A745)](#)
+[![Version](https://img.shields.io/github/v/tag/martin-rizzo/TensorInfo?label=version%3A&color=D07250)](#)
+[![Last](https://img.shields.io/github/last-commit/martin-rizzo/TensorInfo?label=last%20commit%3A)](#)  
 <img src="phase0.png" width="50%"></img>
 
 </div>
@@ -20,7 +25,7 @@ It includes utilities for inspecting safetensors/gguf files:
 - Access checkpoint metadata, including model configurations and additional information.
 - Simple design for easy integration with existing projects.
 - Thoroughly documented code at a tutorial-like level to facilitate learning.
-- Implemented in C++20 for the delight of a select few and as a nightmare for the rest of us.
+- Crafted with all the love and unrelenting suffering that only C++20 can offer.
 - CLI utilities
 
 ## Overview

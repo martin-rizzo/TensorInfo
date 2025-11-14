@@ -15,7 +15,8 @@
 #include <tin/readerror.h>  // for tin::ReadError
 #include <tin/tensormap.h>  // for tin::TensorMap
 #include "lstensors_args.h" // for LsTensorsArgs
-
+using tin::TensorMap;
+using tin::ReadError;
 
 class LsTensorsCommand
 {
@@ -27,12 +28,13 @@ public:
 
 // SUBCOMMANDS
 public:
-    void print_metadata(const tin::TensorMap& tensorMap) const;
+    void list_metadata(const TensorMap& tensorMap) const;
+    void print_metadata(const TensorMap& tensorMap, const std::string& key) const;
 
 // HELPERS
 public:
     static void print_help();
-    [[noreturn]] static void fatal_read_error( tin::ReadError error );
+    [[noreturn]] static void fatal_read_error( ReadError error );
 
 
 // IMPLEMENTATION

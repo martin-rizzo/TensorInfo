@@ -32,7 +32,7 @@ public:
     using iterator       = InternalMap::iterator;
     using const_iterator = InternalMap::const_iterator;
 
-// MODIFIER METHODS
+// MODIFYING METADATA VALUES
 public:
     void set_boolean (StringView key, bool          value);
     void set_integer (StringView key, long int      value, MetaType metatype = MetaType::INT32  );
@@ -40,7 +40,7 @@ public:
     void set_float   (StringView key, double        value, MetaType metatype = MetaType::FLOAT32);
     void set_string  (StringView key, StringView    value);
 
-// LOOKUP METHODS
+// ACCESSING METADATA VALUES
 public:
     [[nodiscard]] const MetaValue& get(StringView key) const noexcept;
     [[nodiscard]] bool             contains(StringView key) const noexcept;

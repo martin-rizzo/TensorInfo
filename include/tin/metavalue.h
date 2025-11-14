@@ -19,7 +19,6 @@ namespace tin {
 
 class MetaValue
 {
-
 // CONSTRUCTION
 public:
     explicit MetaValue(bool           value , MetaType metatype = MetaType::BOOL   ) noexcept;
@@ -28,8 +27,9 @@ public:
     explicit MetaValue(double         value , MetaType metatype = MetaType::FLOAT32) noexcept;
     explicit MetaValue(StringView     value , MetaType metatype = MetaType::STRING ) noexcept;
     //explicit MetaValue(Vector<String> vector, MetaType metatype = MetaType::STRING ) noexcept;
-public:
     explicit MetaValue(MetaValue&& other) noexcept;
+private:
+    MetaValue() noexcept;
 
 
 // CONVERSIONS
@@ -47,6 +47,8 @@ public:
         return _metatype;
     }
 
+public:
+    static const MetaValue None;   
 
 // IMPLEMENTATION
 private:

@@ -12,6 +12,8 @@
 #include <tin/metadata.h>
 namespace tin {
 
+//======================= MODIFYING METADATA VALUES =======================//
+
 void
 Metadata::set_boolean(StringView key,
                       bool      value
@@ -48,6 +50,21 @@ Metadata::set_string(StringView key,
                      StringView value
 ){
     _map.emplace(key, MetaValue(value));
+}
+
+//======================= ACCESSING METADATA VALUES =======================//
+
+const MetaValue&
+Metadata::get(StringView key
+) const noexcept {
+    auto it = _map.find( String{key} );
+    return( it == _map.end() ) ? MetaValue::None : it->second;
+}
+
+bool
+Metadata::contains(StringView key
+) const noexcept {
+    return _map.contains( String{key} );
 }
 
 

@@ -17,15 +17,13 @@
 
 enum class Command {
     LIST_TENSORS,
-    PRINT_TENSOR,
-    PRINT_METADATA,
+    LIST_METADATA,
     EXTRACT_THUMBNAIL
 };
 inline std::string to_string(Command command) {
     switch (command) {
         case Command::LIST_TENSORS     : return "Command::LIST_TENSORS";
-        case Command::PRINT_TENSOR     : return "Command::PRINT_TENSOR";
-        case Command::PRINT_METADATA   : return "Command::PRINT_METADATA";
+        case Command::LIST_METADATA    : return "Command::LIST_METADATA";
         case Command::EXTRACT_THUMBNAIL: return "Command::EXTRACT_THUMBNAIL";
         default: return "<unknown>";
     }
@@ -76,13 +74,13 @@ public:
 // PUBLIC MEMBERS
 public:
     Command     command     = Command::LIST_TENSORS;
-    Format      format      = Format::HUMAN;
-    std::string input_file  = "";
-    std::string prefix      = "";
-    std::string tensor_name = "";
-    int         depth       = 0;
-    UseColor    use_color   = UseColor::AUTO;
-    bool        help        = false;
+    std::string filename    = "";             ///< The name of the file to read
+    std::string name        = "";             ///< The name of the tensor to print
+    std::string prefix      = "";             ///< Only print tensors with this prefix
+    int         depth       = 0;              ///< The depth of the tree to print
+    Format      format      = Format::HUMAN;  ///< Output format
+    UseColor    use_color   = UseColor::AUTO; ///< Whether to use color in output
+    bool        help        = false;          ///< true = print usage and exit
 };
 std::ostream& operator<<(std::ostream& os, const LsTensorsArgs& args);
 

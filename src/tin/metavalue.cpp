@@ -16,6 +16,9 @@
 #include <tin/metatype.h>
 namespace tin {
 
+// The 'MetaValue::None' constant represents the absence of a meaningful value.
+const MetaValue MetaValue::None = MetaValue();
+
 /**
  * Trims whitespace from both ends of a string and converts it to lowercase.
  *
@@ -105,6 +108,11 @@ MetaValue::MetaValue(StringView value,
   _metatype{ metatype }
 {} 
 
+// private, utilizada unicamente por `MetaValue::None`
+MetaValue::MetaValue() noexcept
+: _type { Type::NONE }
+{}
+  
 
 //============================== CONVERSIONS ==============================//
 

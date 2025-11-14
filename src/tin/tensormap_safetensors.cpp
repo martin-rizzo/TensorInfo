@@ -93,43 +93,72 @@ _read_sizet_array(const json::Value& value
 
 
 /**
- * Try to construct a TensorInfo object from JSON data.
+ * Attempts to insert tensor information into the provided `tensorMap`.
  *
- * This static function creates a `TensorInfo` object from a JSON representation.
- * It extracts the data type ('dtype'), shape array ('shape'), and data offsets
- * ('data_offsets') from the provided JSON `value`. If any component is missing
- * or malformed, it returns an empty optional.
+ * This function extracts necessary details from a JSON object representing
+ * information about a tensor (e.g., its data type, shape, etc). If all
+ * required components are valid, it constructs a `TensorInfo` object
+ * and inserts it into the `tensorMap` using the provided name.
  *
- * @param name              The name of the tensor (e.g., "encoder.block.0.layer.0.SelfAttention.k.weight")
- * @param value             The JSON value containing the tensor information in JSON format.
- * @param ptrPath           A shared pointer to the path where the tensor is stored.
- *                          (this can be `std::nullptr` for tensors that are not stored on disk)
- * @param byteBufferOffset  The offset of the "byte-buffer" within the safetensors file. 
- *                          (this can be 0 if the tensor is not stored on disk)
- * @return
- *    An optional containing the constructed tensor information if successful,
- *    or an empty optional if any component is missing or malformed.
+ * @param[in] tensorMap  The map where tensor information will be stored.
+ * @param[in] jsonName   JSon object containing the tensor's name.
+ * @param[in] jsonValue  JSON object containing the tensor's data type, shape, etc
+ * @param[in] ptrPath    Shared pointer to a Path object, representing the path to
+ *                       file where the tensor raw data is stored. Can be `nullptr`
+ * @param[in] byteBufferOffset
+ *                       Offset within the file where the raw-data is stored.
+ *                       This parameter is NOT the offset of the tensor data in the
+ *                       file, but the offset where the main data block starts.
  */
-static Optional<TensorInfo>
-_try_to_parse_tensor_info(StringView            name,
-                          const json::Value&    value,
-                          SharedPtr<const Path> ptrPath,
-                          size_t                byteBufferOffset
+static void
+_insert_tensor_info(TensorMap&            tensorMap,
+                    const json::Value&    jsonName,
+                    const json::Value&    jsonValue,
+                    SharedPtr<const Path> ptrPath,
+                    size_t                byteBufferOffset
 ){
-    if( !value.IsObject() ) { return {}; }
+    if( !jsonName.IsString()  ) { return; }
+    if( !jsonValue.IsObject() ) { return; }
 
-    auto opt_dtype       = _read_dtype      ( value["dtype"]        );
-    auto opt_shapeArray  = _read_sizet_array( value["shape"]        );
-    auto opt_offsetArray = _read_sizet_array( value["data_offsets"] );
-    if( !opt_dtype || !opt_shapeArray || !opt_offsetArray ) { return {}; }
-    if( opt_offsetArray->size() != 2 ) { return {}; }
-    return TensorInfo(name,
-                      *opt_dtype,
-                      Shape{ *opt_shapeArray },
-                      ptrPath,
-                      opt_offsetArray->at(0) + byteBufferOffset,
-                      opt_offsetArray->at(1) + byteBufferOffset
-                      );
+    auto name        = StringView{ jsonName.GetString() };
+    auto dtype       = _read_dtype      ( jsonValue["dtype"]        );
+    auto shapeArray  = _read_sizet_array( jsonValue["shape"]        );
+    auto offsetArray = _read_sizet_array( jsonValue["data_offsets"] );
+    if( name.empty() || !dtype || !shapeArray || !offsetArray ) { return; }
+    if( offsetArray->size() != 2 ) { return; }
+
+    tensorMap.insert( TensorInfo{ name,
+                                  *dtype,
+                                  Shape{ *shapeArray },
+                                  ptrPath,
+                                  static_cast<std::streampos>(offsetArray->at(0) + byteBufferOffset),
+                                  static_cast<std::streampos>(offsetArray->at(1) + byteBufferOffset)
+    });
+}
+
+/**
+ * Attempts to set a new metadata key/value pair in the `tensorMap`.
+ *
+ * This function updates or inserts metadata into the `tensorMap` if both
+ * provided JSON values represent valid strings.
+ *
+ * @param[in] tensorMap  The map where the metadata will be inserted.
+ * @param[in] jsonName   JSON object containing the metadata name.
+ * @param[in] jsonValue  JSON object containing the metadata value.
+ */
+static void
+_insert_checkpoint_metadata(TensorMap&         tensorMap,
+                            const json::Value& jsonName,
+                            const json::Value& jsonValue
+){
+    if( !jsonName.IsString()  ) { return; }
+    if( !jsonValue.IsString() ) { return; }
+
+    auto name  = StringView{ jsonName.GetString() };
+    auto value = StringView{ jsonValue.GetString() };
+    if( name.empty() ) { return; }
+
+    tensorMap.metadata().set_string( name, value );
 }
 
 
@@ -209,31 +238,38 @@ TensorMap::_fromsafetensors(const uint8_t   firstBytes[8],
     // the path that will be shared by all tensors
     auto ptrPath = std::make_shared<const Path>(filePath);
 
-    // iterate over each element in the JSON document and insert a `TensorInfo`
-    // for each one of them, except for "__metadata__" elements
+    // iterate over each element within the JSON document, creating a `TensorInfo`
+    // entry for each one. Element named "__metadata__" is handled separately.
     auto jsonRootDict = document.GetObject();
     for( const auto& jsonElement : jsonRootDict )
     {
-        // the key/value pair must be a string/object pair
+        // each key/value pair must be a string/object pair
         if( !jsonElement.name.IsString()  ) { continue; }
         if( !jsonElement.value.IsObject() ) { continue; }
 
         StringView tensorName{ jsonElement.name.GetString() };
-        if( tensorName == "__metadata__" )
+        if( tensorName == "__metadata__"  )
         {
-            /// TODO: parse checkpoint metadata
-            continue;
+            // handling for "__metadata__" element, this element is expected to
+            // be an object containing the metadata elements in key/value pairs.
+            auto jsonMetadataDict = jsonElement.value.GetObject();
+            for( const auto& jsonMetadataKV : jsonMetadataDict )
+            {
+                _insert_checkpoint_metadata(tensorMap,
+                                            jsonMetadataKV.name,
+                                            jsonMetadataKV.value
+                                            );
+            }
         }
-        // parse the TensorInfo from the JSON element
-        // and insert it into the map
-        auto tensorInfo = _try_to_parse_tensor_info(tensorName,
-                                                    jsonElement.value,
-                                                    ptrPath,
-                                                    byteBufferPosition
-                                                    );
-        if ( tensorInfo ) {
-            tensorMap.insert( *tensorInfo );
-        }
+        else
+        {
+            // insert a new TensorInfo entry into the map
+            _insert_tensor_info(tensorMap,
+                                jsonElement.name,
+                                jsonElement.value,
+                                ptrPath, byteBufferPosition
+                                );
+       }
     }
     return tensorMap;
 }

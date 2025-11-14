@@ -9,9 +9,22 @@
 |                                 TensorInfo
 |   A C++ library for working with tensors & metadata in model checkpoints
 \_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _*/
-#include <string>
+#include <format>   // for std::format
+#include <string>   // for std::string
+#include <charconv> // for std::from_chars
 #include "lstensors_args.h"
 #include "message.h"
+
+
+static int
+to_integer(std::string_view str, int defaultValue = 0) {
+    int result;
+    auto end = str.data() + str.length();
+    auto resultInfo = std::from_chars(str.data(), end, result);
+    return resultInfo.ec == std::errc{} ? result : defaultValue;
+}
+
+//============================= CONSTRUCTION ==============================//
 
 /**
  * Constructs a new LsTensorsArgs object by parsing command line arguments.
@@ -26,30 +39,33 @@
 LsTensorsArgs::LsTensorsArgs(int argc, char* argv[])
 {
     for( int i=1 ; i < argc ; ++i ) {
-        std::string arg{ argv[i] };
+        std::string_view arg{ argv[i] };
+        std::string_view nextarg{ (i+1) < argc && argv[i+1][0] != '-' ? argv[i+1] : "" };
 
         // parse the flags arguments
         if( arg.starts_with('-') ) {
-            std::string nextarg{ (i+i) < argc ? argv[i+1] : "" };
-            if     ( arg=="-p" || arg=="--prefix"   ) { prefix = nextarg; }
-            else if( arg=="-d" || arg=="--depth"    ) { depth  = std::stoi(nextarg); }
-            else if( arg=="-t" || arg=="--tensor"   ) { command = Command::PRINT_TENSOR; tensor_name = nextarg; }
-            else if( arg=="-m" || arg=="--metadata" ) { command = Command::PRINT_METADATA; }
+        //-OPTIONS:
+            if     ( arg=="-n" || arg=="--name"     ) { name = nextarg; ++i; }
+            else if( arg=="-m" || arg=="--metadata" ) { command = Command::LIST_METADATA; }
             else if(              arg=="--thumbnail") { command = Command::EXTRACT_THUMBNAIL; }
+            else if( arg=="-p" || arg=="--prefix"   ) { prefix = nextarg; ++i; }
+            else if( arg=="-d" || arg=="--depth"    ) { depth  = to_integer(nextarg); ++i; }
+        //-FORMATS:
             else if( arg=="-u" || arg=="--human"    ) { format = Format::HUMAN; }
-            else if( arg=="-b" || arg=="--plain"    ) { format = Format::PLAIN; }
+            else if( arg=="-b" || arg=="--basic"    ) { format = Format::PLAIN; }
             else if( arg=="-j" || arg=="--json"     ) { format = Format::JSON; }
-            else if( arg=="-n" || arg=="--no-color" ) { use_color = UseColor::NEVER; }
-            else if( arg=="-h" || arg=="--help"     ) { help = true; }
+        //-EXTRA:
+            else if( arg=="--nc" || arg=="--no-color" ) { use_color = UseColor::NEVER; }
+            else if( arg=="-h"   || arg=="--help"     ) { help = true; }
             else {
-                Message::fatal_error("Unknown argument: " + arg, {
+                Message::fatal_error( std::format("Unknown argument: {}", arg), {
                     "Try `lstensors --help` for more information."
                 });
             }
         }
         // parse the positional arguments (not starting with '-')
         else {
-            if( input_file.empty() ) { input_file = arg;  }
+            if( filename.empty() ) { filename = arg;  }
             else {
                 Message::fatal_error("Too many files specified.", {
                     "You can only specify one file."
@@ -74,11 +90,11 @@ std::ostream&
 operator<<(std::ostream& os, const LsTensorsArgs& args) {
     os << "Args:"                                        << std::endl;
     os << "  command: "     << to_string(args.command)   << std::endl;
-    os << "  format: "      << to_string(args.format)    << std::endl;
-    os << "  input_file: "  << args.input_file           << std::endl;
+    os << "  filename: "    << args.filename             << std::endl;
+    os << "  name: "        << args.name                 << std::endl;
     os << "  prefix: "      << args.prefix               << std::endl;
-    os << "  tensor_name: " << args.tensor_name          << std::endl;
     os << "  depth: "       << args.depth                << std::endl;
+    os << "  format: "      << to_string(args.format)    << std::endl;
     os << "  use_color: "   << to_string(args.use_color) << std::endl;
     os << "  Help: "        << to_string(args.help)      << std::endl;
     return os;

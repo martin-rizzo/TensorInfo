@@ -85,7 +85,23 @@ TensorMap::from_stream(std::istream&   istream,
     }
 }
 
+//=========================== QUERYING THE MAP ============================//
 
+const TensorInfo&
+TensorMap::operator[](const String& name) const noexcept {
+    auto it = _map.find(name);
+    return it == end() ? TensorInfo::None : it->second;
+}
+
+TensorMap::const_iterator
+TensorMap::find(const String& name) const noexcept {
+    return _map.find(name);
+}
+
+bool
+TensorMap::contains(const String& name) const noexcept {
+    return _map.contains(name);
+}
 
 
 } // namespace tin

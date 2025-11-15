@@ -15,6 +15,10 @@
 #include <tin/unnamedtensorinfo.h>
 namespace tin {
 
+// The 'TensorInfo::None' constant represents the absence of a tensor info.
+const TensorInfo TensorInfo::None = TensorInfo();
+
+
 //======================= CONSTRUCTION/DESTRUCTION ========================//
 
 /**
@@ -110,6 +114,17 @@ TensorInfo::TensorInfo(SharedPtr<String> ptrName,
                        SharedPtr<UnnamedTensorInfo> ptrUnnamedTensorInfo
 ): _ptrName{ ptrName },
    _ptrUnnamedTensorInfo{ ptrUnnamedTensorInfo }
+{}
+
+
+/**
+ * Private constructor used exclusively by `TensorInfo::None`.
+ */
+TensorInfo::TensorInfo()
+:  TensorInfo(
+      nullptr,
+      make<UnnamedTensorInfo>( DType::UNKNOWN, Shape{}, make<Path>(""), 0, 0 )
+   )
 {}
 
 

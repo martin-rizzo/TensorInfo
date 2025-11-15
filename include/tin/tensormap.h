@@ -56,60 +56,41 @@ public:
 
 // LOADING TENSORMAP
 public:
-    static TensorMap from_file(const Path& filePath, ReadError& outError) noexcept;
-    static TensorMap from_stream(std::istream& istream, ReadError& outError, const Path& filePath = {}, std::streamsize fileSize = 0) noexcept;
+    [[nodiscard]] static TensorMap from_file(const Path& filePath, ReadError& outError) noexcept;
+    [[nodiscard]] static TensorMap from_stream(std::istream& istream, ReadError& outError, const Path& filePath = {}, std::streamsize fileSize = 0) noexcept;
 
-// METADATA ACCESS
+
+// QUERYING THE MAP
 public:
-    [[nodiscard]] Metadata& metadata() noexcept {
-        return _metadata;
-    }
-    
-    [[nodiscard]] const Metadata& metadata() const noexcept {
-        return _metadata;
-    }
+    [[nodiscard]] const TensorInfo& operator[](const String& name) const noexcept;
+    [[nodiscard]] const_iterator find(const String& name) const noexcept;
+    [[nodiscard]] bool           contains(const String& name) const noexcept;
 
 
-// MODIFIERS
+// MODIFYING THE MAP
 public:
+  
+    void clear() noexcept {
+        _map.clear();
+    }
+
     std::pair<iterator, bool> insert( const TensorInfo& tensorInfo ) {
         return _map.emplace(tensorInfo.name(), tensorInfo);
     }
-    
 
+// METADATA ACCESS
+public:
+    [[nodiscard]] Metadata&       metadata() noexcept;
+    [[nodiscard]] const Metadata& metadata() const noexcept;
+    
 // ITERATORS
 public:
-
-    /**
-     * Returns an iterator to the beginning of the map.
-     */
-    [[nodiscard]] iterator begin() noexcept { return _map.begin();  }
-
-    /**
-     * Returns an iterator to the beginning of the const map.
-     */
-    [[nodiscard]] const_iterator begin() const noexcept { return _map.begin();  }
-
-    /**
-     * Returns an explicit constant iterator to the beginning of the map.
-     */
-    [[nodiscard]] const_iterator cbegin() const noexcept { return _map.cbegin(); }
-
-    /**
-     * Returns an iterator to the end of the map.
-     */
-    [[nodiscard]] iterator end() noexcept { return _map.end(); }
-
-    /**
-     * Returns an iterator to the end of the const map.
-     */
-    [[nodiscard]] const_iterator end() const noexcept { return _map.end(); }
-
-    /**
-     * Returns an explicit constant iterator to the end of the map.
-     */
-    [[nodiscard]] const_iterator cend() const noexcept { return _map.cend(); }
-
+    [[nodiscard]] iterator       begin()  noexcept;
+    [[nodiscard]] const_iterator begin()  const noexcept;
+    [[nodiscard]] const_iterator cbegin() const noexcept;
+    [[nodiscard]] iterator       end()    noexcept;
+    [[nodiscard]] const_iterator end()    const noexcept;
+    [[nodiscard]] const_iterator cend()   const noexcept;
 
 // IMPLEMENTATION
 private:
@@ -119,6 +100,43 @@ private:
     std::unordered_map<String, TensorInfo> _map;
     Metadata                               _metadata;
 };
+
+
+//======================= INLINES: METADATA ACCESS ========================//
+
+inline Metadata&
+TensorMap::metadata() noexcept { return _metadata; }
+
+inline const Metadata&
+TensorMap::metadata() const noexcept { return _metadata; }
+
+
+//========================== INLINES: ITERATORS ===========================//
+
+/** Returns an iterator to the beginning of the map. */
+inline TensorMap::iterator
+TensorMap::begin() noexcept { return _map.begin();  }
+
+/** Returns an iterator to the beginning of the const map. */
+inline TensorMap::const_iterator
+TensorMap::begin() const noexcept { return _map.begin();  }
+
+/** Returns an explicit constant iterator to the beginning of the map. */
+inline TensorMap::const_iterator
+TensorMap::cbegin() const noexcept { return _map.cbegin(); }
+
+/** Returns an iterator to the end of the map. */
+inline TensorMap::iterator
+TensorMap::end() noexcept { return _map.end(); }
+
+/** Returns an iterator to the end of the const map. */
+inline TensorMap::const_iterator
+TensorMap::end() const noexcept { return _map.end(); }
+
+/** Returns an explicit constant iterator to the end of the map. */
+inline TensorMap::const_iterator
+TensorMap::cend() const noexcept { return _map.cend(); }
+
 
 
 }      // namespace tin

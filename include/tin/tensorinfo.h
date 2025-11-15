@@ -30,7 +30,11 @@ namespace tin {
  */
 class TensorInfo
 {
-// CONSTRUCTION
+// CONSTANT VALUES
+public:
+    static const TensorInfo None;
+
+// CONSTRUCTION/DESTRUCTION
 public:
     TensorInfo(StringView name, DType dtype, const Shape& shape, StringView            path   , std::streampos rawDataBegin, std::streampos rawDataEnd);
     TensorInfo(StringView name, DType dtype, const Shape& shape, SharedPtr<const Path> ptrPath, std::streampos rawDataBegin, std::streampos rawDataEnd);
@@ -40,10 +44,11 @@ public:
     ~TensorInfo() = default;
 private:
     TensorInfo(SharedPtr<String> ptrName, SharedPtr<UnnamedTensorInfo> ptrUnnamedTensorInfo);
+    TensorInfo();
 
 // ATTRIBUTES
 public:
-    [[nodiscard]] String          name()           const;
+    [[nodiscard]] StringView      name()           const;
     [[nodiscard]] DType           dtype()          const;
     [[nodiscard]] const Shape&    shape()          const;
     [[nodiscard]] const Path&     path()           const;
@@ -67,9 +72,9 @@ private:
 /**
  * Returns name of the tensor.
  */
-inline String
+inline StringView
 TensorInfo::name()  const {
-    return *_ptrName;
+    return _ptrName ? *_ptrName : "";
 }
 
 /**

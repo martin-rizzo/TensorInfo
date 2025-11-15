@@ -9,12 +9,14 @@
 |                                 TensorInfo
 |   A C++ library for working with tensors & metadata in model checkpoints
 \_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _*/
+#include <variant>     // for std::get, std::variant
 #include <algorithm>   // for std::transform
 #include <iterator>    // for std::back_inserter
 #include <tin/common.h>
 #include <tin/metavalue.h>
 #include <tin/storagetype.h>
 namespace tin {
+using std::get;
 
 // The 'MetaValue::None' constant represents the absence of a meaningful value.
 const MetaValue MetaValue::None = MetaValue();
@@ -79,8 +81,8 @@ _trim_to_lowercase(const std::string_view& str)
 MetaValue::MetaValue(bool        value,
                      StorageType storageType  // = StorageType::BOOL
 ) noexcept
-: _type { Type::BOOLEAN    },
-  _value{ .boolean = value },
+: _type { Type::BOOL },
+  _value{ value },
   _storageType{ storageType }
 {}
 
@@ -100,8 +102,8 @@ MetaValue::MetaValue(bool        value,
 MetaValue::MetaValue(long        value,
                      StorageType storageType // = StorageType::INT32
 ) noexcept
-: _type { Type::LONG_INT    },
-  _value{ .long_int = value },
+: _type { Type::LONG_INT },
+  _value{ value },
   _storageType{ storageType }
 {}
 
@@ -122,8 +124,8 @@ MetaValue::MetaValue(long        value,
 MetaValue::MetaValue(unsigned long value,
                      StorageType   storageType // = StorageType::UINT32
 ) noexcept
-: _type { Type::LONG_UNSIGNED    },
-  _value{ .long_unsigned = value },
+: _type { Type::LONG_UNSIGNED },
+  _value{ value },
   _storageType{ storageType }
 {}
 
@@ -142,8 +144,8 @@ MetaValue::MetaValue(unsigned long value,
 MetaValue::MetaValue(double      value,
                      StorageType storageType // = StorageType::FLOAT32
 ) noexcept
-: _type { Type::DOUBLE_PRECISION    },
-  _value{ .double_precision = value },
+: _type { Type::DOUBLE },
+  _value{ value },
   _storageType{ storageType }
 {}
 
@@ -162,8 +164,8 @@ MetaValue::MetaValue(double      value,
 MetaValue::MetaValue(StringView  value,
                      StorageType storageType // = StorageType::STRING
 ) noexcept
-: _type        { Type::STRING },
-  _value_string{    value     },
+: _type { Type::STRING },
+  _value{ String{value} },
   _storageType{ storageType }
 {} 
 
@@ -202,24 +204,24 @@ MetaValue::MetaValue() noexcept
  *     `default_` parameter upon failure.
  */
 bool
-MetaValue::as_boolean(bool default_ // = false
+MetaValue::as_bool(bool default_ // = false
 ) const noexcept {
     switch( _type )
     {
-        case Type::BOOLEAN:
-            return _value.boolean;
+        case Type::BOOL:
+            return get<bool>(_value);
 
         case Type::LONG_INT:
-            return (_value.long_int != 0);
+            return get<long int>(_value) != 0;
 
         case Type::LONG_UNSIGNED:
-            return (_value.long_unsigned != 0);
+            return get<long unsigned>(_value) != 0;
 
-        case Type::DOUBLE_PRECISION:
-            return (_value.double_precision < -0.1 || 0.1 < _value.double_precision);
+        case Type::DOUBLE:
+            return (get<double>(_value) < -0.1 || 0.1 < get<double>(_value));
 
         case Type::STRING: {
-            String lower = _trim_to_lowercase( _value_string );
+            String lower = _trim_to_lowercase( get<String>(_value) );
             if( lower == "true" || lower == "yes" || lower == "on" || lower == "enabled" || lower == "1" ) {
                 return true;
             }
@@ -261,29 +263,29 @@ MetaValue::as_integer(long default_ // = 0L
 ) const noexcept {
     switch( _type )
     {
-        case Type::BOOLEAN:
-            return _value.boolean ? 1L : 0L;
+        case Type::BOOL:
+            return get<bool>(_value) ? 1L : 0L;
 
         case Type::LONG_INT:
-            return _value.long_int;
+            return get<long int>(_value);
 
         case Type::LONG_UNSIGNED:
             // solve potential overflow when converting
-            if( _value.long_unsigned > std::numeric_limits<long>::max() )
+            if( get<long unsigned>(_value) > std::numeric_limits<long>::max() )
             { return std::numeric_limits<long>::max(); }
-            return static_cast<long>( _value.long_unsigned );
+            return static_cast<long>( get<long unsigned>(_value) );
         
-        case Type::DOUBLE_PRECISION:
+        case Type::DOUBLE:
             // solve potential overflow when converting
-            if( _value.double_precision > std::numeric_limits<long>::max() )
+            if( get<double>(_value) > std::numeric_limits<long>::max() )
             { return std::numeric_limits<long>::max(); }
-            if ( _value.double_precision < std::numeric_limits<long>::min() )
+            if ( get<double>(_value) < std::numeric_limits<long>::min() )
             { return std::numeric_limits<long>::min();  }
-            return static_cast<long>( _value.double_precision );
+            return static_cast<long>( get<double>(_value) );
 
         case Type::STRING:
             try {
-                return std::stol(_value_string);
+                return std::stol( get<String>(_value) );
             } catch (...) { return default_; }
 
         default:
@@ -320,28 +322,28 @@ MetaValue::as_unsigned(unsigned long default_ // = 0UL
 ) const noexcept {
     switch( _type ) {
 
-        case Type::BOOLEAN:
-            return _value.boolean ? 1UL : 0UL;
+        case Type::BOOL:
+            return get<bool>(_value) ? 1UL : 0UL;
 
         case Type::LONG_INT:
             // solve potential negative values
-            if( _value.long_int < 0 ) { return 0UL; }
-            return static_cast<unsigned long>(_value.long_int);
+            if( get<long int>(_value) < 0 ) { return 0UL; }
+            return static_cast<unsigned long>( get<long int>(_value) );
 
         case Type::LONG_UNSIGNED:
-            return _value.long_unsigned;
+            return get<long unsigned>(_value);
 
-        case Type::DOUBLE_PRECISION:
+        case Type::DOUBLE:
             // solve potential overflow when converting
-            if( _value.double_precision > std::numeric_limits<unsigned long>::max() )
+            if( get<double>(_value)> std::numeric_limits<unsigned long>::max() )
             { return std::numeric_limits<unsigned long>::max(); }
-            if ( _value.double_precision < std::numeric_limits<unsigned long>::min() )
+            if ( get<double>(_value) < std::numeric_limits<unsigned long>::min() )
             { return std::numeric_limits<unsigned long>::min();  }
-            return static_cast<unsigned long>( _value.double_precision );
+            return static_cast<unsigned long>( get<double>(_value) );
 
         case Type::STRING: {
             try {
-                return std::stoul(_value_string);
+                return std::stoul( get<String>(_value) );
             } catch (...) { return default_; }
         }
         default:
@@ -376,21 +378,21 @@ MetaValue::as_double(double default_ // = 0.0
 ) const noexcept {
     switch( _type ) {
 
-        case Type::BOOLEAN:
-            return _value.boolean ? 1.0 : 0.0;
+        case Type::BOOL:
+            return get<bool>(_value) ? 1.0 : 0.0;
 
         case Type::LONG_INT:
-            return static_cast<double>(_value.long_int);
+            return static_cast<double>( get<long int>(_value) );
 
         case Type::LONG_UNSIGNED:
-            return static_cast<double>(_value.long_unsigned);
+            return static_cast<double>( get<long unsigned>(_value) );
 
-        case Type::DOUBLE_PRECISION:
-            return _value.double_precision;
+        case Type::DOUBLE:
+            return get<double>(_value);
 
         case Type::STRING:
             try {
-                return std::stod(_value_string);
+                return std::stod( get<String>(_value) );
             } catch (...) { return default_; }
 
         default:
@@ -423,19 +425,15 @@ String
 MetaValue::as_string(StringView default_ // = ""
 ) const noexcept {
     switch( _type ) {
-        case Type::BOOLEAN         : return _value.boolean ? "true" : "false";
-        case Type::LONG_INT        : return std::to_string(_value.long_int);
-        case Type::LONG_UNSIGNED   : return std::to_string(_value.long_unsigned);
-        case Type::DOUBLE_PRECISION: return std::to_string(_value.double_precision);
-        case Type::STRING          : return _value_string;
+        case Type::BOOL         : return get<bool>(_value) ? "true" : "false";
+        case Type::LONG_INT     : return std::to_string( get<long int     >(_value) );
+        case Type::LONG_UNSIGNED: return std::to_string( get<long unsigned>(_value) );
+        case Type::DOUBLE       : return std::to_string( get<double       >(_value) );
+        case Type::STRING       : return get<String>(_value);
         default:
             return String{ default_ };
     }
 }
-
-
-// TODO: implementar
-// double as_double(double        default_ = 0.0  ) const noexcept;
 
 
 } // namespace tin

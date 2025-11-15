@@ -12,6 +12,7 @@
 #pragma once
 #ifndef TIN_METAVALUE_H_
 #define TIN_METAVALUE_H_
+#include <variant> // for std::variant
 #include <tin/common.h>
 #include <tin/storagetype.h>
 namespace tin {
@@ -38,7 +39,7 @@ private:
 
 // CONVERSIONS
 public:
-    bool           as_boolean (bool          default_ = false) const noexcept;
+    bool           as_bool    (bool          default_ = false) const noexcept;
     long           as_integer (long          default_ = 0L   ) const noexcept;
     unsigned long  as_unsigned(unsigned long default_ = 0UL  ) const noexcept;
     double         as_double  (double        default_ = 0.0  ) const noexcept;
@@ -53,21 +54,13 @@ public:
 
 // IMPLEMENTATION
 private:
-    enum class Type {
-        NONE, BOOLEAN, LONG_INT, LONG_UNSIGNED, DOUBLE_PRECISION, STRING
-        //STRING_VECTOR,//METAVALUE_VECTOR
-    };
-    typedef union {
-        bool           boolean;
-        long int       long_int;
-        long unsigned  long_unsigned;
-        double         double_precision;
-    } ValueUnion;
+    using      Variant = std::variant<bool, long int, unsigned long, double, String>;
+    enum class Type { NONE, BOOL, LONG_INT, LONG_UNSIGNED, DOUBLE, STRING
+                      /*STRING_VECTOR, METAVALUE_VECTOR*/ };
 private:
-    Type           _type;
-    ValueUnion     _value;
-    String         _value_string;
-    StorageType    _storageType;
+    Type        _type;
+    Variant     _value;
+    StorageType _storageType;
 };
 
 
@@ -77,7 +70,6 @@ inline
 MetaValue::MetaValue(MetaValue&& other) noexcept
 : _type { other._type  },
   _value{ other._value },
-  _value_string{ std::move(other._value_string) },
   _storageType{ other._storageType }
 {
     other._type = Type::NONE;

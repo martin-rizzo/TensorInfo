@@ -10,7 +10,7 @@ public_headers += files(
     'common.h',
     'dtype.h',
     'metadata.h',
-    'metavalue.h',
+    'metavariant.h',
     'readerror.h',
     'shape.h',
     'storagetype.h',

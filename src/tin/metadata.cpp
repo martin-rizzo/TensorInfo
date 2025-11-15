@@ -19,7 +19,7 @@ Metadata::set_boolean(StringView  key,
                       bool        value,
                       StorageType storageType // = StorageType::BOOL
 ){
-    _map.emplace(key, MetaValue(value, storageType));
+    _map.emplace(key, MetaVariant(value, storageType));
 }
 
 void
@@ -27,7 +27,7 @@ Metadata::set_integer(StringView  key,
                       long int    value,
                       StorageType storageType // = StorageType::INT32
 ){
-    _map.emplace(key, MetaValue(value, storageType));
+    _map.emplace(key, MetaVariant(value, storageType));
 }
 
 void
@@ -35,7 +35,7 @@ Metadata::set_unsigned(StringView    key,
                        long unsigned value,
                        StorageType   storageType // = StorageType::UINT32
 ){
-    _map.emplace(key, MetaValue(value, storageType));
+    _map.emplace(key, MetaVariant(value, storageType));
 }
 
 void
@@ -43,7 +43,7 @@ Metadata::set_float(StringView  key,
                     double      value,
                     StorageType storageType  // = StorageType::FLOAT32
 ){
-    _map.emplace(key, MetaValue(value, storageType));
+    _map.emplace(key, MetaVariant(value, storageType));
 }
 
 void
@@ -51,16 +51,16 @@ Metadata::set_string(StringView  key,
                      StringView  value,
                      StorageType storageType  // = StorageType::STRING
 ){
-    _map.emplace(key, MetaValue(value, storageType));
+    _map.emplace(key, MetaVariant(value, storageType));
 }
 
 //======================= ACCESSING METADATA VALUES =======================//
 
-const MetaValue&
+const MetaVariant&
 Metadata::get(StringView key
 ) const noexcept {
     auto it = _map.find( String{key} );
-    return( it == _map.end() ) ? MetaValue::None : it->second;
+    return( it == _map.end() ) ? MetaVariant::None : it->second;
 }
 
 bool

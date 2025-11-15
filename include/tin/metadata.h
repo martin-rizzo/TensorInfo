@@ -14,7 +14,7 @@
 #define TIN_METADATA_H_
 #include <unordered_map>
 #include <tin/common.h>
-#include <tin/metavalue.h>
+#include <tin/metavariant.h>
 namespace tin {
 
 
@@ -23,7 +23,7 @@ class Metadata
 public:
     // Type aliases for compatibility with standard containers
     using key_type        = String;
-    using mapped_type     = MetaValue;
+    using mapped_type     = MetaVariant;
     using value_type      = std::pair<const key_type, mapped_type>;
     using size_type       = std::size_t;
     using difference_type = std::ptrdiff_t;
@@ -42,8 +42,8 @@ public:
 
 // ACCESSING METADATA VALUES
 public:
-    [[nodiscard]] const MetaValue& get(StringView key) const noexcept;
-    [[nodiscard]] bool             contains(StringView key) const noexcept;
+    [[nodiscard]] const MetaVariant& get(StringView key) const noexcept;
+    [[nodiscard]] bool contains(StringView key) const noexcept;
 
 
 // ??

@@ -10,7 +10,7 @@ sources += files(
     'gguf' / 'gguf.cpp',
     'dtype.cpp',
     'metadata.cpp',
-    'metavalue.cpp',
+    'metavariant.cpp',
     'shape.cpp',
     'storagetype.cpp',
     'tensorinfo.cpp',

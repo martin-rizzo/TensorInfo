@@ -1,6 +1,6 @@
 /*
-| File    : metavalue.cpp
-| Purpose : Each value stored in the metadata information of the checkpoint.
+| File    : metariant.cpp
+| Purpose : Type-safe way to hold checkpoint metadata values.
 | Author  : Martin Rizzo | <martinrizzo@gmail.com>
 | Date    : Nov 12, 2025
 | Repo    : https://github.com/martin-rizzo/TensorInfo
@@ -13,13 +13,13 @@
 #include <algorithm>   // for std::transform
 #include <iterator>    // for std::back_inserter
 #include <tin/common.h>
-#include <tin/metavalue.h>
+#include <tin/metavariant.h>
 #include <tin/storagetype.h>
 namespace tin {
 using std::get;
 
-// The 'MetaValue::None' constant represents the absence of a meaningful value.
-const MetaValue MetaValue::None = MetaValue();
+// The 'MetaVariant::None' constant represents the absence of a meaningful value.
+const MetaVariant MetaVariant::None = MetaVariant();
 
 //================================ HELPERS ================================//
 
@@ -69,17 +69,17 @@ _trim_to_lowercase(const std::string_view& str)
 //============================= CONSTRUCTION ==============================//
 
 /**
- * Constructs a MetaValue object representing a boolean value.
+ * Constructs a MetaVariant object representing a boolean value.
  *
- * This constructor initializes a MetaValue to contain a boolean. The optional
+ * This constructor initializes a MetaVariant to contain a boolean. The optional
  * `storageType` parameter serves only as a hint about the file storage format.
  *
- * @param value       The boolean value to be stored within the MetaValue object.
+ * @param value       The boolean value to be stored within the MetaVariant object.
  * @param storageType An optional hint specifying how the value is stored in file.
  *                    Default is `StorageType::BOOL`.
  */
-MetaValue::MetaValue(bool        value,
-                     StorageType storageType  // = StorageType::BOOL
+MetaVariant::MetaVariant(bool        value,
+                         StorageType storageType  // = StorageType::BOOL
 ) noexcept
 : _type { Type::BOOL },
   _value{ value },
@@ -88,19 +88,19 @@ MetaValue::MetaValue(bool        value,
 
 
 /**
- * Constructs a MetaValue object representing an integer value.
+ * Constructs a MetaVariant object representing an integer value.
  *
- * This constructor initializes the MetaValue to contain an integer. The `long`
+ * This constructor initializes the MetaVariant to contain an integer. The `long`
  * type is used for accommodating values potentially larger than 32 bits. The
  * optional `storageType` parameter serves only as a hint about the file
  * storage format.
  *
- * @param value       The integer (long) value to be stored within the MetaValue object.
+ * @param value       The integer (long) value to be stored within the MetaVariant object.
  * @param storageType An optional hint specifying how the value is stored in file.
  *                    Default is `StorageType::INT32`.
  */
-MetaValue::MetaValue(long        value,
-                     StorageType storageType // = StorageType::INT32
+MetaVariant::MetaVariant(long        value,
+                         StorageType storageType // = StorageType::INT32
 ) noexcept
 : _type { Type::LONG_INT },
   _value{ value },
@@ -109,20 +109,20 @@ MetaValue::MetaValue(long        value,
 
 
 /**
- * Constructs a MetaValue object representing an unsigned integer value.
+ * Constructs a MetaVariant object representing an unsigned integer value.
  *
- * This constructor initializes a MetaValue to store an unsigned long integer.
+ * This constructor initializes a MetaVariant to store an unsigned long integer.
  * The `unsigned long` type is used for accommodating values potentially larger
  * than 32 bits. The optional `storageType` parameter serves only as a hint
  * about the file storage format.
  *
  * @param value       The unsigned integer (long) value to be stored within
- *                    the MetaValue object.
+ *                    the MetaVariant object.
  * @param storageType An optional hint specifying how the value is stored in file.
  *                    Default is `StorageType::UINT32`.
  */
-MetaValue::MetaValue(unsigned long value,
-                     StorageType   storageType // = StorageType::UINT32
+MetaVariant::MetaVariant(unsigned long value,
+                         StorageType   storageType // = StorageType::UINT32
 ) noexcept
 : _type { Type::LONG_UNSIGNED },
   _value{ value },
@@ -131,18 +131,18 @@ MetaValue::MetaValue(unsigned long value,
 
 
 /**
- * Constructs a MetaValue object representing a double-precision floating-point value.
+ * Constructs a MetaVariant object representing a double-precision floating-point value.
  *
- * This constructor initializes a MetaValue to store a `double`. The optional
+ * This constructor initializes a MetaVariant to store a `double`. The optional
  * `storageType` parameter serves only as a hint about the file storage format.
  *
  * @param value       The double precision floating point value to be stored
- *                    within the MetaValue object.
+ *                    within the MetaVariant object.
  * @param storageType An optional hint specifying how the value is stored in file.
  *                    Default is `StorageType::FLOAT32`.
  */
-MetaValue::MetaValue(double      value,
-                     StorageType storageType // = StorageType::FLOAT32
+MetaVariant::MetaVariant(double      value,
+                         StorageType storageType // = StorageType::FLOAT32
 ) noexcept
 : _type { Type::DOUBLE },
   _value{ value },
@@ -151,18 +151,18 @@ MetaValue::MetaValue(double      value,
 
 
 /**
- * Constructs a MetaValue object representing a string.
+ * Constructs a MetaVariant object representing a string.
  *
- * This constructor initializes a MetaValue to store a `StringView`, which
+ * This constructor initializes a MetaVariant to store a `StringView`, which
  * represents a sequence of characters. The optional `storageType` parameter
  * serves only as a hint about the file storage format.
  *
- * @param value       The string to be stored within the MetaValue object.
+ * @param value       The string to be stored within the MetaVariant object.
  * @param storageType An optional hint specifying how the value is stored in file.
  *                    Default is `StorageType::STRING`.
  */
-MetaValue::MetaValue(StringView  value,
-                     StorageType storageType // = StorageType::STRING
+MetaVariant::MetaVariant(StringView  value,
+                         StorageType storageType // = StorageType::STRING
 ) noexcept
 : _type { Type::STRING },
   _value{ String{value} },
@@ -171,9 +171,9 @@ MetaValue::MetaValue(StringView  value,
 
 
 /**
- * Private constructor used exclusively by `MetaValue::None`.
+ * Private constructor used exclusively by `MetaVariant::None`.
  */
-MetaValue::MetaValue() noexcept
+MetaVariant::MetaVariant() noexcept
 : _type { Type::NONE }
 {}
   
@@ -181,10 +181,10 @@ MetaValue::MetaValue() noexcept
 //============================== CONVERSIONS ==============================//
 
 /**
- * Returns a boolean representation of this MetaValue object.
+ * Returns a boolean representation of this MetaVariant object.
  *
- * This function attempts to return a boolean value that best represents the
- * state of this MetaValue object, regardless of its actual data type.
+ * This function attempts to return the boolean value that best represents the
+ * state of this MetaVariant object, regardless of its initial data type.
  * 
  * For string types, common truthy values such as "true", "yes", "on", "enabled",
  * and "1" are interpreted as `true`, while falsy values like "false", "no",
@@ -199,12 +199,12 @@ MetaValue::MetaValue() noexcept
  * @param default_ An optional fallback value to be returned when boolean
  *                 conversion isn't possible. Default is false.
  * @return
- *     A boolean that represents this meta-value.
+ *     A boolean that represents this meta-variant.
  *     The return value is either the converted boolean, or the provided
  *     `default_` parameter upon failure.
  */
 bool
-MetaValue::as_bool(bool default_ // = false
+MetaVariant::as_boolean(bool default_ // = false
 ) const noexcept {
     switch( _type )
     {
@@ -238,13 +238,13 @@ MetaValue::as_bool(bool default_ // = false
 
 
 /**
- * Returns a (long) integer representation of this MetaValue object.
+ * Returns a (long) integer representation of this MetaVariant object.
  *
  * This function attempts to return the (long) integer that best represents
- * this MetaValue object. The `long` type was chosen for support values
+ * this MetaVariant object. The `long` type was chosen for support values
  * potentially larger than 32 bits.
  *
- * It handles all different data types that MetaValue can contain and manages
+ * It handles all different data types that MetaVariant can contain and manages
  * potential conversion issues. In cases of overflow, it returns the maximum
  * or minimum possible long value to provide a safe fallback.
  * 
@@ -254,12 +254,12 @@ MetaValue::as_bool(bool default_ // = false
  * @param default_ An optional fallback value to be returned when integer
  *                 representation isn't possible. Default is 0L.
  * @return
- *     A (long) integer that represents this meta-value.
- *     The return value is either the extracted integer, max/min long in case
+ *     A (long) integer that represents this meta-variant.
+ *     The return value is either the converted integer, max/min long in case
  *     of overflow, or the provided `default_` parameter upon failure.
  */
 long
-MetaValue::as_integer(long default_ // = 0L
+MetaVariant::as_integer(long default_ // = 0L
 ) const noexcept {
     switch( _type )
     {
@@ -295,13 +295,13 @@ MetaValue::as_integer(long default_ // = 0L
 
 
 /**
- * Returns an unsigned (long) integer representation of this MetaValue object.
+ * Returns an unsigned (long) integer representation of this MetaVariant object.
  *
  * This function attempts to return the unsigned (long) integer that best
- * represents this MetaValue object. The `unsigned long` type was chosen to
+ * represents this MetaVariant object. The `unsigned long` type was chosen to
  * support values potentially larger than 32 bits.
  *
- * It handles all different data types that MetaValue can contain and manages
+ * It handles all different data types that MetaVariant can contain and manages
  * potential conversion issues. In cases of overflow, it returns the maximum
  * possible unsigned long value to provide a safe fallback.
  * 
@@ -312,13 +312,13 @@ MetaValue::as_integer(long default_ // = 0L
  * @param default_ An optional fallback value to be returned when unsigned
  *                 integer representation isn't possible. Default is 0UL.
  * @return
- *     An unsigned (long) integer that represents this meta-value.
- *     The return value is either the extracted unsigned integer, max/min
+ *     An unsigned (long) integer that represents this meta-variant.
+ *     The return value is either the converted unsigned integer, max/min
  *     unsigned long value in case of overflow, or the provided `default_`
  *     parameter upon failure.
  */
 unsigned long
-MetaValue::as_unsigned(unsigned long default_ // = 0UL
+MetaVariant::as_unsigned(unsigned long default_ // = 0UL
 ) const noexcept {
     switch( _type ) {
 
@@ -353,11 +353,11 @@ MetaValue::as_unsigned(unsigned long default_ // = 0UL
 
 
 /**
- * Returns a double precision floating point representation of this MetaValue object.
+ * Returns a double precision floating point representation of this MetaVariant object.
  *
  * This function attempts to return the double precision floating point value
- * that best represents this MetaValue object. It handles all different data
- * types that MetaValue can contain and manages potential conversion issues.
+ * that best represents this MetaVariant object. It handles all different data
+ * types that MetaVariant can contain and manages potential conversion issues.
  *
  * For numeric types, the conversion is straightforward. For boolean types, true
  * is converted to 1.0 and false to 0.0. For string types, the standard string
@@ -369,12 +369,12 @@ MetaValue::as_unsigned(unsigned long default_ // = 0UL
  * @param default_ An optional fallback value to be returned when double
  *                 representation isn't possible. Default is 0.0.
  * @return
- *     A double precision floating point value that represents this meta-value.
+ *     A double precision floating point value that represents this meta-variant.
  *     The return value is either the converted double, or the provided
  *     `default_` parameter upon failure.
  */
 double
-MetaValue::as_double(double default_ // = 0.0
+MetaVariant::as_double(double default_ // = 0.0
 ) const noexcept {
     switch( _type ) {
 
@@ -402,10 +402,10 @@ MetaValue::as_double(double default_ // = 0.0
 
 
 /**
- * Returns a string representation of this MetaValue object.
+ * Returns a string representation of this MetaVariant object.
  *
- * This function attempts to return a string representation of this MetaValue
- * object. It handles all different data types that MetaValue can contain and
+ * This function attempts to return a string representation of this MetaVariant
+ * object. It handles all different data types that MetaVariant can contain and
  * manages potential conversion issues.
  * 
  * For numeric types, the standard string representation is used, while for
@@ -417,12 +417,12 @@ MetaValue::as_double(double default_ // = 0.0
  * @param default_  An optional fallback text to be returned when string 
  *                  representation isn't possible. Default is an empty string.
  * @return
- *     A string that represents this meta-value.
+ *     A string that represents this meta-variant.
  *     The return value is either the converted string, or the provided
  *     `default_` parameter upon failure.
  */
 String
-MetaValue::as_string(StringView default_ // = ""
+MetaVariant::as_string(StringView default_ // = ""
 ) const noexcept {
     switch( _type ) {
         case Type::BOOL         : return get<bool>(_value) ? "true" : "false";

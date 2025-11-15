@@ -34,11 +34,11 @@ public:
 
 // MODIFYING METADATA VALUES
 public:
-    void set_boolean (StringView key, bool          value);
-    void set_integer (StringView key, long int      value, MetaType metatype = MetaType::INT32  );
-    void set_unsigned(StringView key, long unsigned value, MetaType metatype = MetaType::UINT32 );
-    void set_float   (StringView key, double        value, MetaType metatype = MetaType::FLOAT32);
-    void set_string  (StringView key, StringView    value);
+    void set_boolean (StringView key, bool          value, StorageType storageType = StorageType::BOOL   );
+    void set_integer (StringView key, long int      value, StorageType storageType = StorageType::INT32  );
+    void set_unsigned(StringView key, long unsigned value, StorageType storageType = StorageType::UINT32 );
+    void set_float   (StringView key, double        value, StorageType storageType = StorageType::FLOAT32);
+    void set_string  (StringView key, StringView    value, StorageType storageType = StorageType::STRING );
 
 // ACCESSING METADATA VALUES
 public:
@@ -50,14 +50,7 @@ public:
 public:
     std::vector<const key_type*> keys() const;
 
-
-public:
-    MetaType get_original_type(StringView key) const;
-    MetaType get_preferred_type(StringView key) const;
-
-public:
-    
-
+   
 // ITERATORS
 public:
 

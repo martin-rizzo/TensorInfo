@@ -15,41 +15,43 @@ namespace tin {
 //======================= MODIFYING METADATA VALUES =======================//
 
 void
-Metadata::set_boolean(StringView key,
-                      bool      value
+Metadata::set_boolean(StringView  key,
+                      bool        value,
+                      StorageType storageType // = StorageType::BOOL
 ){
-    _map.emplace(key, MetaValue(value));
+    _map.emplace(key, MetaValue(value, storageType));
 }
 
 void
-Metadata::set_integer(StringView key,
-                      long int   value,
-                      MetaType   metatype // = MetaType::INT32
+Metadata::set_integer(StringView  key,
+                      long int    value,
+                      StorageType storageType // = StorageType::INT32
 ){
-    _map.emplace(key, MetaValue(value, metatype));
+    _map.emplace(key, MetaValue(value, storageType));
 }
 
 void
 Metadata::set_unsigned(StringView    key,
                        long unsigned value,
-                       MetaType      metatype // = MetaType::UINT32
+                       StorageType   storageType // = StorageType::UINT32
 ){
-    _map.emplace(key, MetaValue(value, metatype));
+    _map.emplace(key, MetaValue(value, storageType));
 }
 
 void
-Metadata::set_float(StringView key,
-                    double     value,
-                    MetaType   metatype  // = MetaType::FLOAT32
+Metadata::set_float(StringView  key,
+                    double      value,
+                    StorageType storageType  // = StorageType::FLOAT32
 ){
-    _map.emplace(key, MetaValue(value, metatype));
+    _map.emplace(key, MetaValue(value, storageType));
 }
 
 void
-Metadata::set_string(StringView key,
-                     StringView value
+Metadata::set_string(StringView  key,
+                     StringView  value,
+                     StorageType storageType  // = StorageType::STRING
 ){
-    _map.emplace(key, MetaValue(value));
+    _map.emplace(key, MetaValue(value, storageType));
 }
 
 //======================= ACCESSING METADATA VALUES =======================//

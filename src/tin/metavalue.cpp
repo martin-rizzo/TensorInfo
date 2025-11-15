@@ -13,7 +13,7 @@
 #include <iterator>    // for std::back_inserter
 #include <tin/common.h>
 #include <tin/metavalue.h>
-#include <tin/metatype.h>
+#include <tin/storagetype.h>
 namespace tin {
 
 // The 'MetaValue::None' constant represents the absence of a meaningful value.
@@ -70,18 +70,18 @@ _trim_to_lowercase(const std::string_view& str)
  * Constructs a MetaValue object representing a boolean value.
  *
  * This constructor initializes a MetaValue to contain a boolean. The optional
- * `metatype` parameter serves only as a hint about the file storage format.
+ * `storageType` parameter serves only as a hint about the file storage format.
  *
- * @param value    The boolean value to be stored within the MetaValue object.
- * @param metatype An optional hint specifying how the value was stored in file.
- *                 Default is `MetaType::BOOL`.
+ * @param value       The boolean value to be stored within the MetaValue object.
+ * @param storageType An optional hint specifying how the value is stored in file.
+ *                    Default is `StorageType::BOOL`.
  */
-MetaValue::MetaValue(bool     value,
-                     MetaType metatype  // = MetaType::BOOL
+MetaValue::MetaValue(bool        value,
+                     StorageType storageType  // = StorageType::BOOL
 ) noexcept
 : _type { Type::BOOLEAN    },
   _value{ .boolean = value },
-  _metatype{ metatype }
+  _storageType{ storageType }
 {}
 
 
@@ -90,19 +90,19 @@ MetaValue::MetaValue(bool     value,
  *
  * This constructor initializes the MetaValue to contain an integer. The `long`
  * type is used for accommodating values potentially larger than 32 bits. The
- * optional `metatype` parameter serves only as a hint about the file storage
- * format.
+ * optional `storageType` parameter serves only as a hint about the file
+ * storage format.
  *
- * @param value    The integer (long) value to be stored within the MetaValue object.
- * @param metatype An optional hint specifying how the value was stored in file.
- *                 Default is `MetaType::INT32`.
+ * @param value       The integer (long) value to be stored within the MetaValue object.
+ * @param storageType An optional hint specifying how the value is stored in file.
+ *                    Default is `StorageType::INT32`.
  */
-MetaValue::MetaValue(long      value,
-                     MetaType  metatype // = MetaType::INT32
+MetaValue::MetaValue(long        value,
+                     StorageType storageType // = StorageType::INT32
 ) noexcept
 : _type { Type::LONG_INT    },
   _value{ .long_int = value },
-  _metatype{ metatype }
+  _storageType{ storageType }
 {}
 
 
@@ -111,20 +111,20 @@ MetaValue::MetaValue(long      value,
  *
  * This constructor initializes a MetaValue to store an unsigned long integer.
  * The `unsigned long` type is used for accommodating values potentially larger
- * than 32 bits. The optional `metatype` parameter serves only as a hint about
- * the file storage format.
+ * than 32 bits. The optional `storageType` parameter serves only as a hint
+ * about the file storage format.
  *
- * @param value    The unsigned integer (long) value to be stored within
- *                 the MetaValue object.
- * @param metatype An optional hint specifying how the value was stored in file.
- *                 Default is `MetaType::UINT32`.
+ * @param value       The unsigned integer (long) value to be stored within
+ *                    the MetaValue object.
+ * @param storageType An optional hint specifying how the value is stored in file.
+ *                    Default is `StorageType::UINT32`.
  */
 MetaValue::MetaValue(unsigned long value,
-                     MetaType      metatype // = MetaType::UINT32
+                     StorageType   storageType // = StorageType::UINT32
 ) noexcept
 : _type { Type::LONG_UNSIGNED    },
   _value{ .long_unsigned = value },
-  _metatype{ metatype }
+  _storageType{ storageType }
 {}
 
 
@@ -132,19 +132,19 @@ MetaValue::MetaValue(unsigned long value,
  * Constructs a MetaValue object representing a double-precision floating-point value.
  *
  * This constructor initializes a MetaValue to store a `double`. The optional
- * `metatype` parameter serves only as a hint about the file storage format.
+ * `storageType` parameter serves only as a hint about the file storage format.
  *
- * @param value    The double precision floating point value to be stored
- *                 within the MetaValue object.
- * @param metatype An optional hint specifying how the value was stored in file.
- *                 Default is `MetaType::FLOAT32`.
+ * @param value       The double precision floating point value to be stored
+ *                    within the MetaValue object.
+ * @param storageType An optional hint specifying how the value is stored in file.
+ *                    Default is `StorageType::FLOAT32`.
  */
-MetaValue::MetaValue(double   value,
-                     MetaType metatype // = MetaType::FLOAT32
+MetaValue::MetaValue(double      value,
+                     StorageType storageType // = StorageType::FLOAT32
 ) noexcept
 : _type { Type::DOUBLE_PRECISION    },
   _value{ .double_precision = value },
-  _metatype{ metatype }
+  _storageType{ storageType }
 {}
 
 
@@ -152,19 +152,19 @@ MetaValue::MetaValue(double   value,
  * Constructs a MetaValue object representing a string.
  *
  * This constructor initializes a MetaValue to store a `StringView`, which
- * represents a sequence of characters. The optional `metatype` parameter
+ * represents a sequence of characters. The optional `storageType` parameter
  * serves only as a hint about the file storage format.
  *
- * @param value    The string to be stored within the MetaValue object.
- * @param metatype An optional hint specifying how the value was stored in file.
- *                 Default is `MetaType::STRING`.
+ * @param value       The string to be stored within the MetaValue object.
+ * @param storageType An optional hint specifying how the value is stored in file.
+ *                    Default is `StorageType::STRING`.
  */
-MetaValue::MetaValue(StringView value,
-                     MetaType metatype // = MetaType::STRING
+MetaValue::MetaValue(StringView  value,
+                     StorageType storageType // = StorageType::STRING
 ) noexcept
 : _type        { Type::STRING },
   _value_string{    value     },
-  _metatype{ metatype }
+  _storageType{ storageType }
 {} 
 
 
@@ -233,6 +233,7 @@ MetaValue::as_boolean(bool default_ // = false
             return default_;
     }
 }
+
 
 /**
  * Returns a (long) integer representation of this MetaValue object.

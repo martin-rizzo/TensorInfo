@@ -13,7 +13,7 @@
 #ifndef TIN_METAVALUE_H_
 #define TIN_METAVALUE_H_
 #include <tin/common.h>
-#include <tin/metatype.h>
+#include <tin/storagetype.h>
 namespace tin {
 
 
@@ -21,12 +21,12 @@ class MetaValue
 {
 // CONSTRUCTION
 public:
-    explicit MetaValue(bool           value , MetaType metatype = MetaType::BOOL   ) noexcept;
-    explicit MetaValue(long           value , MetaType metatype = MetaType::INT32  ) noexcept;
-    explicit MetaValue(unsigned long  value , MetaType metatype = MetaType::UINT32 ) noexcept;
-    explicit MetaValue(double         value , MetaType metatype = MetaType::FLOAT32) noexcept;
-    explicit MetaValue(StringView     value , MetaType metatype = MetaType::STRING ) noexcept;
-    //explicit MetaValue(Vector<String> vector, MetaType metatype = MetaType::STRING ) noexcept;
+    explicit MetaValue(bool           value , StorageType storageType = StorageType::BOOL   ) noexcept;
+    explicit MetaValue(long           value , StorageType storageType = StorageType::INT32  ) noexcept;
+    explicit MetaValue(unsigned long  value , StorageType storageType = StorageType::UINT32 ) noexcept;
+    explicit MetaValue(double         value , StorageType storageType = StorageType::FLOAT32) noexcept;
+    explicit MetaValue(StringView     value , StorageType storageType = StorageType::STRING ) noexcept;
+    //explicit MetaValue(Vector<String> vector, StorageType storageType = StorageType::ARRAY_OF_STRINGS ) noexcept;
     explicit MetaValue(MetaValue&& other) noexcept;
 private:
     MetaValue() noexcept;
@@ -43,8 +43,8 @@ public:
     
 // TYPE HINTS
 public:
-    MetaType original_metatype() const {
-        return _metatype;
+    StorageType storage_type() const {
+        return _storageType;
     }
 
 public:
@@ -73,7 +73,7 @@ private:
     Type           _type;
     ValueUnion     _value;
     String         _value_string;
-    MetaType       _metatype;
+    StorageType    _storageType;
 };
 
 
@@ -84,7 +84,7 @@ MetaValue::MetaValue(MetaValue&& other) noexcept
 : _type { other._type  },
   _value{ other._value },
   _value_string{ std::move(other._value_string) },
-  _metatype{ other._metatype }
+  _storageType{ other._storageType }
 {
     other._type = Type::NONE;
 }

@@ -9,7 +9,7 @@
 |                                 TensorInfo
 |   A C++ library for working with tensors & metadata in model checkpoints
 \_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _*/
-#include <tin/metatype.h>
+#include <tin/storagetype.h>
 namespace tin {
 
 

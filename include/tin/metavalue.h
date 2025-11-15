@@ -22,8 +22,8 @@ class MetaValue
 // CONSTRUCTION
 public:
     explicit MetaValue(bool           value , MetaType metatype = MetaType::BOOL   ) noexcept;
-    explicit MetaValue(long int       value , MetaType metatype = MetaType::INT32  ) noexcept;
-    explicit MetaValue(long unsigned  value , MetaType metatype = MetaType::UINT32 ) noexcept;
+    explicit MetaValue(long           value , MetaType metatype = MetaType::INT32  ) noexcept;
+    explicit MetaValue(unsigned long  value , MetaType metatype = MetaType::UINT32 ) noexcept;
     explicit MetaValue(double         value , MetaType metatype = MetaType::FLOAT32) noexcept;
     explicit MetaValue(StringView     value , MetaType metatype = MetaType::STRING ) noexcept;
     //explicit MetaValue(Vector<String> vector, MetaType metatype = MetaType::STRING ) noexcept;
@@ -35,9 +35,9 @@ private:
 // CONVERSIONS
 public:
     bool           as_boolean (bool          default_ = false) const noexcept;
-    long int       as_integer (long int      default_ = 0L   ) const noexcept;
-    long unsigned  as_unsigned(long unsigned default_ = 0UL  ) const noexcept;
-    double         as_float   (double        default_ = 0.0  ) const noexcept;
+    long           as_integer (long          default_ = 0L   ) const noexcept;
+    unsigned long  as_unsigned(unsigned long default_ = 0UL  ) const noexcept;
+    double         as_double  (double        default_ = 0.0  ) const noexcept;
     String         as_string  (StringView    default_ = ""   ) const noexcept;
     //Vector<String> as_string_vector() const noexcept;
     

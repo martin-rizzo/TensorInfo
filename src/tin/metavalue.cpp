@@ -9,8 +9,8 @@
 |                                 TensorInfo
 |   A C++ library for working with tensors & metadata in model checkpoints
 \_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _*/
-#include <algorithm>   // for std::transform, std::find_if
-#include <iterator>    // for std::back_inserter, std::distance
+#include <algorithm>   // for std::transform
+#include <iterator>    // for std::back_inserter
 #include <tin/common.h>
 #include <tin/metavalue.h>
 #include <tin/metatype.h>
@@ -18,6 +18,8 @@ namespace tin {
 
 // The 'MetaValue::None' constant represents the absence of a meaningful value.
 const MetaValue MetaValue::None = MetaValue();
+
+//================================ HELPERS ================================//
 
 /**
  * Trims whitespace from both ends of a string and converts it to lowercase.
@@ -35,21 +37,21 @@ _trim_to_lowercase(const std::string_view& str)
 {
     static const auto whitespaces = std::string_view{" \t\n\r\f\v"};
 
-    // obtener la subcadena trimeada (first index, last index)
-    // (return an empty string if all characters are whitespace)
+    // identify the range of non-whitespace characters in the input string,
+    // (if empty or all whitespace, return an empty string)
     const auto firstIdx = str.find_first_not_of(whitespaces);
     const auto lastIdx  = str.find_last_not_of(whitespaces);
     if( firstIdx >= lastIdx ) {
         return {};
     }
 
-    // pre-allocate memory for efficiency
+    // pre-allocate memory to enhance efficiency,
+    // based on the length of the trimmed substring.
     std::string result;
     result.reserve( (lastIdx+1) - firstIdx ); 
 
-    // transform the trimmed substring to lowercase,
-    // replacing non-printable characters with spaces
-    // (assuming ASCII encoding, utf8 can work but only ascii caracters will be converted)
+    // transform the identified trimmed substring into lowercase
+    // (while UTF-8 is compatible, only ASCII characters will be converted to lowercase)
     auto first = str.begin() + firstIdx;
     auto last  = str.begin() + lastIdx;
     std::transform(first, last, std::back_inserter(result),
@@ -62,10 +64,18 @@ _trim_to_lowercase(const std::string_view& str)
     return result;
 }    
 
-
-
 //============================= CONSTRUCTION ==============================//
 
+/**
+ * Constructs a MetaValue object representing a boolean value.
+ *
+ * This constructor initializes a MetaValue to contain a boolean. The optional
+ * `metatype` parameter serves only as a hint about the file storage format.
+ *
+ * @param value    The boolean value to be stored within the MetaValue object.
+ * @param metatype An optional hint specifying how the value was stored in file.
+ *                 Default is `MetaType::BOOL`.
+ */
 MetaValue::MetaValue(bool     value,
                      MetaType metatype  // = MetaType::BOOL
 ) noexcept
@@ -75,7 +85,19 @@ MetaValue::MetaValue(bool     value,
 {}
 
 
-MetaValue::MetaValue(long int  value,
+/**
+ * Constructs a MetaValue object representing an integer value.
+ *
+ * This constructor initializes the MetaValue to contain an integer. The `long`
+ * type is used for accommodating values potentially larger than 32 bits. The
+ * optional `metatype` parameter serves only as a hint about the file storage
+ * format.
+ *
+ * @param value    The integer (long) value to be stored within the MetaValue object.
+ * @param metatype An optional hint specifying how the value was stored in file.
+ *                 Default is `MetaType::INT32`.
+ */
+MetaValue::MetaValue(long      value,
                      MetaType  metatype // = MetaType::INT32
 ) noexcept
 : _type { Type::LONG_INT    },
@@ -83,7 +105,21 @@ MetaValue::MetaValue(long int  value,
   _metatype{ metatype }
 {}
 
-MetaValue::MetaValue(long unsigned value,
+
+/**
+ * Constructs a MetaValue object representing an unsigned integer value.
+ *
+ * This constructor initializes a MetaValue to store an unsigned long integer.
+ * The `unsigned long` type is used for accommodating values potentially larger
+ * than 32 bits. The optional `metatype` parameter serves only as a hint about
+ * the file storage format.
+ *
+ * @param value    The unsigned integer (long) value to be stored within
+ *                 the MetaValue object.
+ * @param metatype An optional hint specifying how the value was stored in file.
+ *                 Default is `MetaType::UINT32`.
+ */
+MetaValue::MetaValue(unsigned long value,
                      MetaType      metatype // = MetaType::UINT32
 ) noexcept
 : _type { Type::LONG_UNSIGNED    },
@@ -91,6 +127,18 @@ MetaValue::MetaValue(long unsigned value,
   _metatype{ metatype }
 {}
 
+
+/**
+ * Constructs a MetaValue object representing a double-precision floating-point value.
+ *
+ * This constructor initializes a MetaValue to store a `double`. The optional
+ * `metatype` parameter serves only as a hint about the file storage format.
+ *
+ * @param value    The double precision floating point value to be stored
+ *                 within the MetaValue object.
+ * @param metatype An optional hint specifying how the value was stored in file.
+ *                 Default is `MetaType::FLOAT32`.
+ */
 MetaValue::MetaValue(double   value,
                      MetaType metatype // = MetaType::FLOAT32
 ) noexcept
@@ -100,6 +148,17 @@ MetaValue::MetaValue(double   value,
 {}
 
 
+/**
+ * Constructs a MetaValue object representing a string.
+ *
+ * This constructor initializes a MetaValue to store a `StringView`, which
+ * represents a sequence of characters. The optional `metatype` parameter
+ * serves only as a hint about the file storage format.
+ *
+ * @param value    The string to be stored within the MetaValue object.
+ * @param metatype An optional hint specifying how the value was stored in file.
+ *                 Default is `MetaType::STRING`.
+ */
 MetaValue::MetaValue(StringView value,
                      MetaType metatype // = MetaType::STRING
 ) noexcept
@@ -108,7 +167,10 @@ MetaValue::MetaValue(StringView value,
   _metatype{ metatype }
 {} 
 
-// private, utilizada unicamente por `MetaValue::None`
+
+/**
+ * Private constructor used exclusively by `MetaValue::None`.
+ */
 MetaValue::MetaValue() noexcept
 : _type { Type::NONE }
 {}
@@ -116,14 +178,46 @@ MetaValue::MetaValue() noexcept
 
 //============================== CONVERSIONS ==============================//
 
+/**
+ * Returns a boolean representation of this MetaValue object.
+ *
+ * This function attempts to return a boolean value that best represents the
+ * state of this MetaValue object, regardless of its actual data type.
+ * 
+ * For string types, common truthy values such as "true", "yes", "on", "enabled",
+ * and "1" are interpreted as `true`, while falsy values like "false", "no",
+ * "off", "disabled", and "0" are interpreted as `false`.
+ * 
+ * For other types, a non-zero numeric value is interpreted as `true`, while
+ * zero is interpreted as `false`.
+ *
+ * If the value connot be expressed as a boolean (such as empty fields or
+ * malformed strings), the function returns the provided `default_` parameter.
+ *
+ * @param default_ An optional fallback value to be returned when boolean
+ *                 conversion isn't possible. Default is false.
+ * @return
+ *     A boolean that represents this meta-value.
+ *     The return value is either the converted boolean, or the provided
+ *     `default_` parameter upon failure.
+ */
 bool
 MetaValue::as_boolean(bool default_ // = false
 ) const noexcept {
-    switch( _type ) {
-        case Type::BOOLEAN          : return _value.boolean;
-        case Type::LONG_INT         : return (_value.long_int      != 0);
-        case Type::LONG_UNSIGNED    : return (_value.long_unsigned != 0);
-        case Type::DOUBLE_PRECISION : return (_value.double_precision < -0.1 || 0.1 < _value.double_precision);
+    switch( _type )
+    {
+        case Type::BOOLEAN:
+            return _value.boolean;
+
+        case Type::LONG_INT:
+            return (_value.long_int != 0);
+
+        case Type::LONG_UNSIGNED:
+            return (_value.long_unsigned != 0);
+
+        case Type::DOUBLE_PRECISION:
+            return (_value.double_precision < -0.1 || 0.1 < _value.double_precision);
+
         case Type::STRING: {
             String lower = _trim_to_lowercase( _value_string );
             if( lower == "true" || lower == "yes" || lower == "on" || lower == "enabled" || lower == "1" ) {
@@ -134,11 +228,147 @@ MetaValue::as_boolean(bool default_ // = false
             }
             return default_;
             } break;
+
         default:
             return default_;
     }
 }
 
+/**
+ * Returns a (long) integer representation of this MetaValue object.
+ *
+ * This function attempts to return the (long) integer that best represents
+ * this MetaValue object. The `long` type was chosen for support values
+ * potentially larger than 32 bits.
+ *
+ * It handles all different data types that MetaValue can contain and manages
+ * potential conversion issues. In cases of overflow, it returns the maximum
+ * or minimum possible long value to provide a safe fallback.
+ * 
+ * If the value cannot be expressed as an integer (such as empty fields or
+ * malformed strings), the function returns the `default_` parameter.
+ *
+ * @param default_ An optional fallback value to be returned when integer
+ *                 representation isn't possible. Default is 0L.
+ * @return
+ *     A (long) integer that represents this meta-value.
+ *     The return value is either the extracted integer, max/min long in case
+ *     of overflow, or the provided `default_` parameter upon failure.
+ */
+long
+MetaValue::as_integer(long default_ // = 0L
+) const noexcept {
+    switch( _type )
+    {
+        case Type::BOOLEAN:
+            return _value.boolean ? 1L : 0L;
+
+        case Type::LONG_INT:
+            return _value.long_int;
+
+        case Type::LONG_UNSIGNED:
+            // solve potential overflow when converting
+            if( _value.long_unsigned > std::numeric_limits<long>::max() )
+            { return std::numeric_limits<long>::max(); }
+            return static_cast<long>( _value.long_unsigned );
+        
+        case Type::DOUBLE_PRECISION:
+            // solve potential overflow when converting
+            if( _value.double_precision > std::numeric_limits<long>::max() )
+            { return std::numeric_limits<long>::max(); }
+            if ( _value.double_precision < std::numeric_limits<long>::min() )
+            { return std::numeric_limits<long>::min();  }
+            return static_cast<long>( _value.double_precision );
+
+        case Type::STRING:
+            try {
+                return std::stol(_value_string);
+            } catch (...) { return default_; }
+
+        default:
+            return default_;
+    }
+}
+
+
+/**
+ * Returns an unsigned (long) integer representation of this MetaValue object.
+ *
+ * This function attempts to return the unsigned (long) integer that best
+ * represents this MetaValue object. The `unsigned long` type was chosen to
+ * support values potentially larger than 32 bits.
+ *
+ * It handles all different data types that MetaValue can contain and manages
+ * potential conversion issues. In cases of overflow, it returns the maximum
+ * possible unsigned long value to provide a safe fallback.
+ * 
+ * If the value cannot be expressed as an unsigned integer (such as empty
+ * fields, or malformed strings), the function returns the `default_`
+ * parameter.
+ *
+ * @param default_ An optional fallback value to be returned when unsigned
+ *                 integer representation isn't possible. Default is 0UL.
+ * @return
+ *     An unsigned (long) integer that represents this meta-value.
+ *     The return value is either the extracted unsigned integer, max/min
+ *     unsigned long value in case of overflow, or the provided `default_`
+ *     parameter upon failure.
+ */
+unsigned long
+MetaValue::as_unsigned(unsigned long default_ // = 0UL
+) const noexcept {
+    switch( _type ) {
+
+        case Type::BOOLEAN:
+            return _value.boolean ? 1UL : 0UL;
+
+        case Type::LONG_INT:
+            // solve potential negative values
+            if( _value.long_int < 0 ) { return 0UL; }
+            return static_cast<unsigned long>(_value.long_int);
+
+        case Type::LONG_UNSIGNED:
+            return _value.long_unsigned;
+
+        case Type::DOUBLE_PRECISION:
+            // solve potential overflow when converting
+            if( _value.double_precision > std::numeric_limits<unsigned long>::max() )
+            { return std::numeric_limits<unsigned long>::max(); }
+            if ( _value.double_precision < std::numeric_limits<unsigned long>::min() )
+            { return std::numeric_limits<unsigned long>::min();  }
+            return static_cast<unsigned long>( _value.double_precision );
+
+        case Type::STRING: {
+            try {
+                return std::stoul(_value_string);
+            } catch (...) { return default_; }
+        }
+        default:
+            return default_;
+    }
+}
+
+
+/**
+ * Returns a string representation of this MetaValue object.
+ *
+ * This function attempts to return a string representation of this MetaValue
+ * object. It handles all different data types that MetaValue can contain and
+ * manages potential conversion issues.
+ * 
+ * For numeric types, the standard string representation is used, while for
+ * boolean types, "true" or "false" is returned.
+ *
+ * If the value cannot be converted to a string (such as empty fields), the
+ * function returns the provided `default_` parameter.
+ *
+ * @param default_  An optional fallback text to be returned when string 
+ *                  representation isn't possible. Default is an empty string.
+ * @return
+ *     A string that represents this meta-value.
+ *     The return value is either the converted string, or the provided
+ *     `default_` parameter upon failure.
+ */
 String
 MetaValue::as_string(StringView default_ // = ""
 ) const noexcept {
@@ -152,6 +382,10 @@ MetaValue::as_string(StringView default_ // = ""
             return String{ default_ };
     }
 }
+
+
+// TODO: implementar
+// double as_double(double        default_ = 0.0  ) const noexcept;
 
 
 } // namespace tin

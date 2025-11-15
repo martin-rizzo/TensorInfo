@@ -34,6 +34,7 @@ namespace tin {
  * Example:
  * @code
  * #include <tin/metavariant.h>
+ * using namespace tin;
  *
  * // Create metadata values using explicit constructors
  * MetaVariant flag{ true };                       // Boolean
@@ -101,10 +102,18 @@ private:
 
 //============================= CONSTRUCTION ==============================//
 
+/**
+ * Move constructor for MetaVariant.
+ * 
+ * Transfers ownership of the stored value from the 'other' object to the
+ * newly created MetaVariant. The 'other' object is left in a valid but
+ * unspecified state.
+ * @param other  The source MetaVariant to move from
+ */
 inline
 MetaVariant::MetaVariant(MetaVariant&& other) noexcept
 : _type { other._type  },
-  _value{ other._value },
+  _value{ std::move(other._value) },
   _storageType{ other._storageType }
 {
     other._type = Type::NONE;

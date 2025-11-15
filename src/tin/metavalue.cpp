@@ -351,6 +351,55 @@ MetaValue::as_unsigned(unsigned long default_ // = 0UL
 
 
 /**
+ * Returns a double precision floating point representation of this MetaValue object.
+ *
+ * This function attempts to return the double precision floating point value
+ * that best represents this MetaValue object. It handles all different data
+ * types that MetaValue can contain and manages potential conversion issues.
+ *
+ * For numeric types, the conversion is straightforward. For boolean types, true
+ * is converted to 1.0 and false to 0.0. For string types, the standard string
+ * to double conversion is used.
+ *
+ * If the value cannot be expressed as a double (such as empty fields or
+ * malformed strings), the function returns the provided `default_` parameter.
+ *
+ * @param default_ An optional fallback value to be returned when double
+ *                 representation isn't possible. Default is 0.0.
+ * @return
+ *     A double precision floating point value that represents this meta-value.
+ *     The return value is either the converted double, or the provided
+ *     `default_` parameter upon failure.
+ */
+double
+MetaValue::as_double(double default_ // = 0.0
+) const noexcept {
+    switch( _type ) {
+
+        case Type::BOOLEAN:
+            return _value.boolean ? 1.0 : 0.0;
+
+        case Type::LONG_INT:
+            return static_cast<double>(_value.long_int);
+
+        case Type::LONG_UNSIGNED:
+            return static_cast<double>(_value.long_unsigned);
+
+        case Type::DOUBLE_PRECISION:
+            return _value.double_precision;
+
+        case Type::STRING:
+            try {
+                return std::stod(_value_string);
+            } catch (...) { return default_; }
+
+        default:
+            return default_;
+    }
+}
+
+
+/**
  * Returns a string representation of this MetaValue object.
  *
  * This function attempts to return a string representation of this MetaValue

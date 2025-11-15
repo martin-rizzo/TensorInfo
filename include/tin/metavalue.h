@@ -19,6 +19,10 @@ namespace tin {
 
 class MetaValue
 {
+// CONSTANT VALUES
+public:
+    static const MetaValue None;   
+
 // CONSTRUCTION
 public:
     explicit MetaValue(bool           value , StorageType storageType = StorageType::BOOL   ) noexcept;
@@ -47,22 +51,12 @@ public:
         return _storageType;
     }
 
-public:
-    static const MetaValue None;   
-
 // IMPLEMENTATION
 private:
     enum class Type {
-        NONE,
-        BOOLEAN,
-        LONG_INT,
-        LONG_UNSIGNED,
-        DOUBLE_PRECISION,
-        STRING
-        //STRING_VECTOR,
-        //METAVALUE_VECTOR
+        NONE, BOOLEAN, LONG_INT, LONG_UNSIGNED, DOUBLE_PRECISION, STRING
+        //STRING_VECTOR,//METAVALUE_VECTOR
     };
-private:
     typedef union {
         bool           boolean;
         long int       long_int;

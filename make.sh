@@ -168,9 +168,16 @@ build_project() {
 #   - The `RELEASE_DIR` variable should specify where the release files will be installed.
 #
 release_project() {
-    meson setup      builddir --prefix "${RELEASE_DIR}" -Dbuildtype=release || fatal_error "Meson setup failed."
-    meson compile -C builddir                                               || fatal_error "Meson compile failed."
-    meson install -C builddir                                               || fatal_error "Meson install failed."
+    local release_args=(
+        --buildtype release
+        -Ddebug=false
+        -Doptimization=2
+        -Dstrip=true
+        -Dwerror=true
+    )
+    meson setup      builddir --prefix "${RELEASE_DIR}" "${release_args[@]}" || fatal_error "Meson setup failed."
+    meson compile -C builddir                                                || fatal_error "Meson compile failed."
+    meson install -C builddir                                                || fatal_error "Meson install failed."
     echo "Release version of TensorInfo built successfully."
     echo "Release files are located in ${RELEASE_DIR}"
 }

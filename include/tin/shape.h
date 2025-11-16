@@ -276,7 +276,7 @@ public:
 
 // DEBUGGING
 public:
-    [[nodiscard]] String to_string(StringView brackets = "[]") const;
+    [[nodiscard]] String to_string(StringView brackets = "[]", StringView separator = ", ") const;
 
 
 // C++20

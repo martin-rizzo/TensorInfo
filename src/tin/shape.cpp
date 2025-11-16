@@ -27,22 +27,27 @@ namespace tin {
  *    Optional string containing the opening and closing brackets used to wrap
  *    the dimension values. The first character is used as the opening bracket
  *    and the second as the closing bracket.
+ * @param separator
+ *    Optional string used to separate individual dimension values in the
+ *    output. If not provided, a comma followed by a space is used as default.
  * @return
  *    A string providing a human-readable representation of the `Shape` object.
  */
 String
-Shape::to_string(StringView brackets // = "[]"
+Shape::to_string(StringView brackets, // = "[]",
+                 StringView separator // = ", "
 ) const {
     std::ostringstream os;
+    bool hasBrackets = brackets.size() >= 2;
 
-    // wrap the dims in brackets
-    os << brackets[0];
+    
+    if( hasBrackets ) { os << brackets[0]; }
     bool first = true;
     for( auto dim : _dims ) {
-        if( first ) { first=false; } else { os << ", "; }
+        if( first ) { first=false; } else { os << separator; }
         os << dim;
     }
-    os << brackets[1];
+    if( hasBrackets ) { os << brackets[1]; }
 
     // return the generated string
     return os.str();

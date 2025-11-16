@@ -46,8 +46,7 @@ Usage: lstensors [OPTIONS] file
 #endif
 
 
-using tin::TensorMap;
-using tin::ReadError;
+using namespace tin;
 
 
 
@@ -94,6 +93,16 @@ LsTensorsCommand::fatal_read_error(ReadError readError) {
 //============================== SUBCOMMANDS ==============================//
 
 void
+LsTensorsCommand::list_tensors(const TensorMap& tensorMap
+) const {
+    const auto sortedTensors = tensorMap.collect_tensors( SortBy::NAME_AND_INDEX );
+    for( const auto& tensor: sortedTensors ) {
+       std::cout << tensor.name() << std::endl;
+       // std::cout << tensor.generate_sort_name() << std::endl;
+    }
+}
+
+void
 LsTensorsCommand::list_metadata(const TensorMap& tensorMap
 ) const {
 
@@ -109,8 +118,6 @@ LsTensorsCommand::print_metadata(const TensorMap&   tensorMap,
 ) const {
     std::cout << tensorMap.metadata().get(key).as_string() << std::endl;
 }
-
-
 
 //================================ RUNNING ================================//
 
@@ -150,9 +157,7 @@ LsTensorsCommand::run()
     }
     else {
         // print the names of all tensors in the file
-        for( auto it: tensorMap ) {
-            std::cout << it.first << " : " << it.second.dtype() << std::endl;
-        }
+        list_tensors( tensorMap );
     }
 
     return 0;

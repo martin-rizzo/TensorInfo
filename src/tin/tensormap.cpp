@@ -10,6 +10,7 @@
 |   A C++ library for working with tensors & metadata in model checkpoints
 \_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _*/
 #include <fstream>     // for std::ifstream
+#include <algorithm>   // for std::sort
 #include <tin/tensormap.h>
 namespace tin {
 
@@ -101,6 +102,95 @@ TensorMap::find(const String& name) const noexcept {
 bool
 TensorMap::contains(const String& name) const noexcept {
     return _map.contains(name);
+}
+
+/**
+ * Collects tensor information from the map, with optional sorting.
+ *
+ * This function returns a vector containing all `TensorInfo` objects from
+ * the map. The collection can optionally be sorted based on a provided
+ * criteria.
+ *
+ * @param sortBy An optional value that determines the sorting criteria. 
+ *    Possible values include:
+ *      - `SortBy::NAME`          : Sorts by tensor name in ascending order.
+ *      - `SortBy::NAME_AND_INDEX': Sorts by tensor name but considers indices.
+ *      - `SortBy::DTYPE`         : Sorts by data type in ascending order.
+ *      - `SortBy::BYTES`         : Sorts by raw data size in bytes in ascending order.
+ *      - `SortBy::NUMEL`         : Sorts by the number of elements in ascending order.
+ *      - `SortBy::UNSORTED`      : No sorting is applied, very fast.
+ *
+ * @return A vector containing copies of each `TensorInfo` object from the map.
+ *         The elements in the vector will be sorted according to the specified
+ *         criteria or in an undefined order if no sorting is requested.
+ */
+std::vector<TensorInfo>
+TensorMap::collect_tensors(SortBy sortBy // = SortBy::UNSORTED
+) const noexcept
+{
+    class Wrapper {
+        TensorInfo          _tensorInfo;
+        long long unsigned  _cachedNumel;
+        std::streamsize     _cachedBytes;
+        mutable String      _cachedNormalName;
+    public:
+        Wrapper(const TensorInfo& tensorInfo)
+        : _tensorInfo{tensorInfo}, _cachedNumel{ tensorInfo.numel() }, _cachedBytes{ tensorInfo.raw_data_size() }
+        {}
+        const TensorInfo&  unwrap() const noexcept { return _tensorInfo;         }
+        StringView         name()   const noexcept { return _tensorInfo.name();  }
+        DType              dtype()  const noexcept { return _tensorInfo.dtype(); }
+        std::streamsize    bytes()  const noexcept { return _cachedBytes;        }
+        long long unsigned numel()  const noexcept { return _cachedNumel;        }
+        const String& normalName()  const noexcept {
+            if( _cachedNormalName.empty() ) { _cachedNormalName = _tensorInfo.generate_normalized_name(); }
+            return _cachedNormalName;
+        }
+    };
+    using WrapperPtr = std::unique_ptr<Wrapper>;
+
+
+    std::vector<TensorInfo> result;
+    result.reserve( _map.size() );
+
+    if( sortBy == SortBy::UNSORTED ) {
+        // NO SORTING:
+        // just copy all TensorInfo objects from the map to the result vector
+        for( const auto& pair : _map ) {
+            result.emplace_back( pair.second );
+        }
+    }
+    else {
+        // SORTING:
+        // create a vector of pointers to Wrapper objects,
+        // (each wrapper contains a TensorInfo with additional cached values)
+        std::vector< WrapperPtr > wrapperPointers;
+        wrapperPointers.reserve( _map.size() );
+        for( const auto& pair : _map ) {
+            wrapperPointers.emplace_back( new Wrapper( pair.second ) );
+        }
+        // sort the vector of pointers based on the specified sorting criteria
+        std::sort( wrapperPointers.begin(), wrapperPointers.end(),
+                    [sortBy](const WrapperPtr& a, const WrapperPtr& b)
+            {
+                switch( sortBy ) {
+                    case SortBy::NAME:           return a->name()       <  b->name();
+                    case SortBy::NAME_AND_INDEX: return a->normalName() <  b->normalName();
+                    case SortBy::DTYPE:          return a->dtype()      <  b->dtype();
+                    case SortBy::BYTES:          return a->bytes()      <  b->bytes();
+                    case SortBy::NUMEL:          return a->numel()      <  b->numel();
+                    default:
+                        return false;
+                }
+            }
+        );
+        // at this point `wrapperPointers` is sorted
+        // so we can just copy them to the result vector of TensorInfo objects
+        for( const auto& wrapperPtr : wrapperPointers ) {
+            result.emplace_back( std::move( wrapperPtr->unwrap() ) );
+        }
+    }
+    return result;
 }
 
 

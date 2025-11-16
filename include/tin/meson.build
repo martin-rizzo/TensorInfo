@@ -13,6 +13,7 @@ public_headers += files(
     'metavariant.h',
     'readerror.h',
     'shape.h',
+    'sortby.h',
     'storagetype.h',
     'tensorinfo.h',
     'tensormap.h',

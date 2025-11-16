@@ -15,6 +15,7 @@
 #include <istream>          // for std::istream
 #include <unordered_map>    // for std::unordered_map
 #include <tin/common.h>     // for String, Path
+#include <tin/sortby.h>     // for SortBy
 #include <tin/readerror.h>  // for ReadError
 #include <tin/tensorinfo.h> // for TensorInfo
 #include <tin/metadata.h>   // for Metadata
@@ -65,6 +66,7 @@ public:
     [[nodiscard]] const TensorInfo& operator[](const String& name) const noexcept;
     [[nodiscard]] const_iterator find(const String& name) const noexcept;
     [[nodiscard]] bool           contains(const String& name) const noexcept;
+    [[nodiscard]] std::vector<TensorInfo> collect_tensors(SortBy sortBy = SortBy::UNSORTED) const noexcept;
 
 
 // MODIFYING THE MAP

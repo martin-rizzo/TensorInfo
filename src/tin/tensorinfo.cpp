@@ -18,7 +18,6 @@ namespace tin {
 // The 'TensorInfo::None' constant represents the absence of a tensor info.
 const TensorInfo TensorInfo::None = TensorInfo();
 
-
 //======================= CONSTRUCTION/DESTRUCTION ========================//
 
 /**
@@ -127,6 +126,64 @@ TensorInfo::TensorInfo()
    )
 {}
 
+//============================== ATTRIBUTES ===============================//
+
+/**
+ * Returns name of the tensor.
+ */
+const String&
+TensorInfo::name() const noexcept {
+    static const String EmptyString{};
+    return _ptrName ? *_ptrName : EmptyString;
+}
+
+/**
+ * Generates a lexicographically sortable name.
+ *
+ * This function processes the tensor's name to ensure correct lexicographic
+ * sorting. Among other things, it replaces sequences of digits with zero-padded
+ * versions, ensuring that numeric values within the name are ordered correctly.
+ *
+ * @note This operation can be computationally expensive. If used in loops,
+ * it's recommended to compute this function once and store its result for reuse.
+ *
+ * @return
+ *   A string representing the normalized name suitable for lexicographic sorting.
+ */
+String TensorInfo::generate_normalized_name() const noexcept {
+    const auto input   = name();
+    const auto length  = name().length();
+    String     result;
+    result.reserve(length+32);
+
+    size_t start = 0;
+    for( size_t i = start ; i<length ; /* 'i' is incremented inside loop */ )
+    {
+        // skip all non-digit characters
+        while( i<length && !isdigit(input[i]) ) { ++i; }
+
+        // at this point, either the end of the string is reached
+        // or a digit character follows
+        if( i<length ) {
+
+            // avanzamos j para encontrar el final de la secuencia de digitos
+            size_t j = i+1; while( j<length && isdigit(input[j]) ) { ++j; }
+
+            // if the digit sequence length is <= 8 characters
+            // then replace it with zero-padded version
+            if( (j-i) < 8 ) {
+                result += input.substr(start, i-start) + std::string(8-(j-i),'0') + input.substr(i,j-i);
+            } else {
+                result += input.substr(start, j-start);
+            }
+            start = i = j;
+        }
+    }
+    // append any remaining characters at the end
+    // of the string if not copied yet
+    if( start < length ) { result += input.substr(start); }
+    return result;
+}
 
 //=============================== DEBUGGING ===============================//
 

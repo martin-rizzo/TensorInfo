@@ -48,13 +48,15 @@ private:
 
 // ATTRIBUTES
 public:
-    [[nodiscard]] StringView      name()           const;
-    [[nodiscard]] DType           dtype()          const;
-    [[nodiscard]] const Shape&    shape()          const;
-    [[nodiscard]] const Path&     path()           const;
-    [[nodiscard]] std::streampos  raw_data_begin() const;
-    [[nodiscard]] std::streampos  raw_data_end()   const;
-    [[nodiscard]] std::streamsize raw_data_size()  const;
+    [[nodiscard]] const String&      name()           const noexcept;
+    [[nodiscard]] DType              dtype()          const noexcept;
+    [[nodiscard]] const Shape&       shape()          const noexcept;
+    [[nodiscard]] unsigned long long numel()          const noexcept;
+    [[nodiscard]] const Path&        path()           const noexcept;
+    [[nodiscard]] std::streampos     raw_data_begin() const noexcept;
+    [[nodiscard]] std::streampos     raw_data_end()   const noexcept;
+    [[nodiscard]] std::streamsize    raw_data_size()  const noexcept;
+    [[nodiscard]] String generate_normalized_name() const noexcept;
     [[nodiscard]] bool is_file_stored() const;
 
 // DEBUGGING
@@ -70,19 +72,11 @@ private:
 //============================== ATTRIBUTES ===============================//
 
 /**
- * Returns name of the tensor.
- */
-inline StringView
-TensorInfo::name()  const {
-    return _ptrName ? *_ptrName : "";
-}
-
-/**
  * Returns the data type of the tensor elements.
  * @return A DType enum value representing the data type of this tensor.
  */
 inline DType
-TensorInfo::dtype() const {
+TensorInfo::dtype() const noexcept {
     return _ptrUnnamedTensorInfo->dtype();
 }
 
@@ -91,8 +85,17 @@ TensorInfo::dtype() const {
  * @return A Shape object containing the dimensions of this tensor.
  */
 inline const Shape&
-TensorInfo::shape() const {
+TensorInfo::shape() const noexcept {
     return _ptrUnnamedTensorInfo->shape();
+}
+
+/**
+ * Returns number of elements in the tensor.
+ * @return The total number of elements in this tensor.
+ */
+inline unsigned long long
+TensorInfo::numel() const noexcept {
+    return shape().numel();
 }
 
 /**
@@ -100,7 +103,7 @@ TensorInfo::shape() const {
  * @return A Path object representing the path.
  */
 inline const Path&
-TensorInfo::path() const {
+TensorInfo::path() const noexcept {
     return _ptrUnnamedTensorInfo->path();
 }
 
@@ -108,7 +111,7 @@ TensorInfo::path() const {
  * Returns the offset in bytes from the beginning of a tensor's raw data within the file.
  */
 inline std::streampos
-TensorInfo::raw_data_begin() const {
+TensorInfo::raw_data_begin() const noexcept {
     return _ptrUnnamedTensorInfo->raw_data_begin();
 }
 
@@ -116,7 +119,7 @@ TensorInfo::raw_data_begin() const {
  * Returns the offset in bytes at which the tensor's raw data ends within the file.
  */
 inline std::streampos
-TensorInfo::raw_data_end() const {
+TensorInfo::raw_data_end() const noexcept {
     return _ptrUnnamedTensorInfo->raw_data_end();
 }
 
@@ -124,7 +127,7 @@ TensorInfo::raw_data_end() const {
  * Returns the size, in bytes, of the tensor's raw data.
  */
 inline std::streamsize
-TensorInfo::raw_data_size() const {
+TensorInfo::raw_data_size() const noexcept {
     return _ptrUnnamedTensorInfo->raw_data_size();
 }
 

@@ -28,7 +28,8 @@ public:
 
 // SUBCOMMANDS
 public:
-    void list_tensors(const TensorMap& tensorMap) const;
+    void list_tensors_columns(const TensorMap& tensorMap) const;
+    void list_tensors_csv(const TensorMap& tensorMap, bool includeHeaders=true) const;
     void list_metadata(const TensorMap& tensorMap) const;
     void print_metadata(const TensorMap& tensorMap, const std::string& key) const;
 

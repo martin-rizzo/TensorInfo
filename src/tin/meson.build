@@ -7,7 +7,7 @@
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #subdir('<none>')
 sources += files(
-    'gguf' / 'gguf.cpp',
+    'gguf' / 'ggufistream.cpp',
     'dtype.cpp',
     'metadata.cpp',
     'metavariant.cpp',

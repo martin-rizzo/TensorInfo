@@ -93,12 +93,38 @@ LsTensorsCommand::fatal_read_error(ReadError readError) {
 //============================== SUBCOMMANDS ==============================//
 
 void
-LsTensorsCommand::list_tensors(const TensorMap& tensorMap
+LsTensorsCommand::list_tensors_columns(const TensorMap& tensorMap
 ) const {
     const auto sortedTensors = tensorMap.collect_tensors( SortBy::NAME_AND_INDEX );
+
+    size_t nameMaxLen=0, shapeMaxLen=0;
+    for(const auto& tensor: sortedTensors) {
+        auto shapeString = tensor.shape().to_string("[]", ",");
+        nameMaxLen  = std::max( nameMaxLen , tensor.name().length() );
+        shapeMaxLen = std::max( shapeMaxLen, shapeString.length() );
+    }
+    
     for( const auto& tensor: sortedTensors ) {
-       std::cout << tensor.name() << std::endl;
-       // std::cout << tensor.generate_sort_name() << std::endl;
+        auto shapeString = tensor.shape().to_string("[]", ",");
+        std::cout << std::format("{:<{}}   {:<{}}  {}\n",
+            tensor.name(), nameMaxLen,
+            shapeString  , shapeMaxLen,
+            tensor.dtype()
+        );
+    }
+}
+
+void
+LsTensorsCommand::list_tensors_csv(const TensorMap& tensorMap,
+                                   bool includeHeader // = true
+) const {
+    const auto sortedTensors = tensorMap.collect_tensors( SortBy::NAME_AND_INDEX );
+    if( includeHeader ) {
+        std::cout << "name,shape,dtype" << std::endl;
+        for( const auto& tensor: sortedTensors ) {
+            auto tensor_shape = tensor.shape().to_string("", "x");
+            std::cout << tensor.name() << ", " << tensor_shape << ", " << tensor.dtype() << std::endl;
+        }
     }
 }
 
@@ -157,7 +183,7 @@ LsTensorsCommand::run()
     }
     else {
         // print the names of all tensors in the file
-        list_tensors( tensorMap );
+        list_tensors_csv( tensorMap );
     }
 
     return 0;

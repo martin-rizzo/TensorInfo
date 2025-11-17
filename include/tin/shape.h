@@ -175,15 +175,15 @@ public:
      * represents a scalar or "null" form with one element, thus returning 1. 
      * Otherwise, it calculates the product of all dimensions.
      *
-     * @return unsigned long long The total number of elements in the tensor.
+     * @return The total number of elements in the tensor.
      */
-    [[nodiscard]] constexpr unsigned long long numel() const noexcept {
+    [[nodiscard]] constexpr ULong numel() const noexcept {
         if (_dims.empty()) {
-            return 1ULL; // Representa un escalar o una "forma nula" con 1 elemento.
+            return ULong{1}; // Representa un escalar o una "forma nula" con 1 elemento.
         }
-        return std::accumulate(_dims.begin(), _dims.end(), 1ULL,
-                               [](unsigned long long acc, value_type dim) {
-                                   return acc * static_cast<unsigned long long>(dim);
+        return std::accumulate(_dims.begin(), _dims.end(), ULong{1},
+                               [](ULong acc, value_type dim) {
+                                   return acc * dim;
                                });
     }
 

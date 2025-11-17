@@ -129,20 +129,20 @@ TensorMap::collect_tensors(SortBy sortBy // = SortBy::UNSORTED
 ) const noexcept
 {
     class Wrapper {
-        TensorInfo          _tensorInfo;
-        long long unsigned  _cachedNumel;
-        std::streamsize     _cachedBytes;
-        mutable String      _cachedNormalName;
+        TensorInfo       _tensorInfo;
+        ULong            _cachedNumel;
+        std::streamsize  _cachedBytes;
+        mutable String   _cachedNormalName;
     public:
         Wrapper(const TensorInfo& tensorInfo)
         : _tensorInfo{tensorInfo}, _cachedNumel{ tensorInfo.numel() }, _cachedBytes{ tensorInfo.raw_data_size() }
         {}
-        const TensorInfo&  unwrap() const noexcept { return _tensorInfo;         }
-        StringView         name()   const noexcept { return _tensorInfo.name();  }
-        DType              dtype()  const noexcept { return _tensorInfo.dtype(); }
-        std::streamsize    bytes()  const noexcept { return _cachedBytes;        }
-        long long unsigned numel()  const noexcept { return _cachedNumel;        }
-        const String& normalName()  const noexcept {
+        const TensorInfo& unwrap() const noexcept { return _tensorInfo;         }
+        StringView        name()   const noexcept { return _tensorInfo.name();  }
+        DType             dtype()  const noexcept { return _tensorInfo.dtype(); }
+        std::streamsize   bytes()  const noexcept { return _cachedBytes;        }
+        ULong             numel()  const noexcept { return _cachedNumel;        }
+        const String& normalName() const noexcept {
             if( _cachedNormalName.empty() ) { _cachedNormalName = _tensorInfo.generate_normalized_name(); }
             return _cachedNormalName;
         }

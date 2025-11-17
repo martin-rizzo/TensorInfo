@@ -48,14 +48,14 @@ private:
 
 // ATTRIBUTES
 public:
-    [[nodiscard]] const String&      name()           const noexcept;
-    [[nodiscard]] DType              dtype()          const noexcept;
-    [[nodiscard]] const Shape&       shape()          const noexcept;
-    [[nodiscard]] unsigned long long numel()          const noexcept;
-    [[nodiscard]] const Path&        path()           const noexcept;
-    [[nodiscard]] std::streampos     raw_data_begin() const noexcept;
-    [[nodiscard]] std::streampos     raw_data_end()   const noexcept;
-    [[nodiscard]] std::streamsize    raw_data_size()  const noexcept;
+    [[nodiscard]] const String&   name()           const noexcept;
+    [[nodiscard]] DType           dtype()          const noexcept;
+    [[nodiscard]] const Shape&    shape()          const noexcept;
+    [[nodiscard]] ULong           numel()          const noexcept;
+    [[nodiscard]] const Path&     path()           const noexcept;
+    [[nodiscard]] std::streampos  raw_data_begin() const noexcept;
+    [[nodiscard]] std::streampos  raw_data_end()   const noexcept;
+    [[nodiscard]] std::streamsize raw_data_size()  const noexcept;
     [[nodiscard]] String generate_normalized_name() const noexcept;
     [[nodiscard]] bool is_file_stored() const;
 
@@ -93,7 +93,7 @@ TensorInfo::shape() const noexcept {
  * Returns number of elements in the tensor.
  * @return The total number of elements in this tensor.
  */
-inline unsigned long long
+inline ULong
 TensorInfo::numel() const noexcept {
     return shape().numel();
 }

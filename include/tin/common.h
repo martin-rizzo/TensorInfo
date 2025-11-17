@@ -19,23 +19,25 @@
 #include <string>       // for std::string
 #include <string_view>  // for std::string_view
 #include <filesystem>   // for std::filesystem::path
+#include <climits>      // for CHAR_BIT
 namespace tin {
 
-using DataPos = size_t;  ///< Position of data within a file or stream (bytes)
 
 /*================================= SIMPLE-CODE ALIASES ==================================================
   A set of templates to simplify code's visual appearance (?)
- +------------------+-------------------------------------------------------+-----------------------------+
- | SIMPLE-CODE      | Description                                           | Implemented using           |
- | ---------------- | ----------------------------------------------------- | --------------------------- |
- | SharedPtr<T>     | Manages shared ownership of a `T` object.             | `std::shared_ptr<T>`        |
- | Optional<T>      | A type that may or may not contain a value of `T`.    | `std::optional<T>`          |
- | Vector<T>        | A sequence of objects of type `T`.                    | `std::vector<T>`            |
- | Map<T>           | An associative container that maps keys to values.    | `std::unordered_map<T>`     |
- | String           | A string of characters.                               | `std::string`               |
- | StringView       | A lightweight view of a string.                       | `std::string_view`          |
- | Path             | A path in the filesystem.                             | `std::filesystem::path`     |
- | make_shared<T>() | Constructs a `T` object and returns a `SharedPtr<T>`. | `std::make_shared<T>()`     |
+ +----------------+---------------------------------------------------------+---------------------------+
+ | SIMPLE-CODE    | Description                                             | Implemented using         |
+ | -------------- | ------------------------------------------------------- | ------------------------- |
+ | SharedPtr<T>   | Manages shared ownership of a `T` object.               | `std::shared_ptr<T>`      |
+ | Optional<T>    | A type that may or may not contain a value of `T`.      | `std::optional<T>`        |
+ | Vector<T>      | A sequence of objects of type `T`.                      | `std::vector<T>`          |
+ | Map<T>         | An associative container that maps keys to values.      | `std::unordered_map<T>`   |
+ | String         | A string of characters.                                 | `std::string`             |
+ | StringView     | A lightweight view of a string.                         | `std::string_view`        |
+ | Long           | A signed integer that guarantees at least 64 bits.      | <implentation-specific>   |
+ | ULong          | An unsigned integer that guarantees at least 64 bits.   | <implentation-specific>   |
+ | Path           | A path in the filesystem.                               | `std::filesystem::path`   |
+ | make_shared<T> | Constructs a `T` object and returns a `SharedPtr<T>`.   | `std::make_shared<T>()`   |
 */
 
 /** A shared pointer to an object of type T. (implemented using std::shared_ptr<T>) */
@@ -59,6 +61,28 @@ using String = std::string;
 
 /** A lightweight view of a string. (implemented using std::string_view) */
 using StringView = std::string_view;
+
+#if defined(__GNUC__) || defined(__clang__)
+    // GCC and Clang provide a predefined macro `__SIZEOF_LONG__`
+    // that indicates the size of a `long` in bytes.
+    #if (__SIZEOF_LONG__ >= 8)
+        using Long  = long;               ///< A signed integer that guarantees at least 64 bits.
+        using ULong = unsigned long;      ///< An unsigned integer that guarantees at least 64 bits.
+    #else
+        using Long  = long long;          ///< A signed integer that guarantees at least 64 bits.
+        using ULong = unsigned long long; ///< An unsigned integer that guarantees at least 64 bits.
+    #endif
+#elif defined(_MSC_VER)
+    // In MSVC, a "C++ long" is consistently 32 bits.
+    // To address this, we use `long long`.
+    using Long  = long long;              ///< A signed integer that guarantees at least 64 bits.
+    using ULong = unsigned long long;     ///< An unsigned integer that guarantees at least 64 bits.
+#else
+    // Default to `long long` when the compiler is not recognized.
+    // TODO: Implement for other compilers
+    using Long  = long long;              ///< A signed integer that guarantees at least 64 bits.
+    using ULong = unsigned long long;     ///< An unsigned integer that guarantees at least 64 bits.
+#endif
 
 /** A path in the filesystem. */
 using Path = std::filesystem::path;

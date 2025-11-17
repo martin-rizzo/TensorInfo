@@ -24,16 +24,16 @@ Metadata::set_boolean(StringView  key,
 
 void
 Metadata::set_integer(StringView  key,
-                      long int    value,
+                      Long        value,
                       StorageType storageType // = StorageType::INT32
 ){
     _map.emplace(key, MetaVariant(value, storageType));
 }
 
 void
-Metadata::set_unsigned(StringView    key,
-                       long unsigned value,
-                       StorageType   storageType // = StorageType::UINT32
+Metadata::set_unsigned(StringView  key,
+                       ULong       value,
+                       StorageType storageType // = StorageType::UINT32
 ){
     _map.emplace(key, MetaVariant(value, storageType));
 }

@@ -90,19 +90,19 @@ MetaVariant::MetaVariant(bool        value,
 /**
  * Constructs a MetaVariant object representing an integer value.
  *
- * This constructor initializes the MetaVariant to contain an integer. The `long`
+ * This constructor initializes the MetaVariant to contain an integer. The `Long`
  * type is used for accommodating values potentially larger than 32 bits. The
  * optional `storageType` parameter serves only as a hint about the file
  * storage format.
  *
- * @param value       The integer (long) value to be stored within the MetaVariant object.
+ * @param value       The integer (Long) value to be stored within the MetaVariant object.
  * @param storageType An optional hint specifying how the value is stored in file.
  *                    Default is `StorageType::INT32`.
  */
-MetaVariant::MetaVariant(long        value,
+MetaVariant::MetaVariant(Long        value,
                          StorageType storageType // = StorageType::INT32
 ) noexcept
-: _type { Type::LONG_INT },
+: _type { Type::LONG },
   _value{ value },
   _storageType{ storageType }
 {}
@@ -111,20 +111,20 @@ MetaVariant::MetaVariant(long        value,
 /**
  * Constructs a MetaVariant object representing an unsigned integer value.
  *
- * This constructor initializes a MetaVariant to store an unsigned long integer.
- * The `unsigned long` type is used for accommodating values potentially larger
- * than 32 bits. The optional `storageType` parameter serves only as a hint
- * about the file storage format.
+ * This constructor initializes a MetaVariant to store an unsigned integer.
+ * The `ULong` type is used for accommodating values potentially larger than
+ * 32 bits. The optional `storageType` parameter serves only as a hint about
+ * the file storage format.
  *
- * @param value       The unsigned integer (long) value to be stored within
+ * @param value       The unsigned integer (ULong) value to be stored within
  *                    the MetaVariant object.
  * @param storageType An optional hint specifying how the value is stored in file.
  *                    Default is `StorageType::UINT32`.
  */
-MetaVariant::MetaVariant(unsigned long value,
-                         StorageType   storageType // = StorageType::UINT32
+MetaVariant::MetaVariant(ULong       value,
+                         StorageType storageType // = StorageType::UINT32
 ) noexcept
-: _type { Type::LONG_UNSIGNED },
+: _type { Type::ULONG },
   _value{ value },
   _storageType{ storageType }
 {}
@@ -211,11 +211,11 @@ MetaVariant::as_boolean(bool default_ // = false
         case Type::BOOL:
             return get<bool>(_value);
 
-        case Type::LONG_INT:
-            return get<long int>(_value) != 0;
+        case Type::LONG:
+            return get<Long>(_value) != 0;
 
-        case Type::LONG_UNSIGNED:
-            return get<long unsigned>(_value) != 0;
+        case Type::ULONG:
+            return get<ULong>(_value) != 0;
 
         case Type::DOUBLE:
             return (get<double>(_value) < -0.1 || 0.1 < get<double>(_value));
@@ -238,15 +238,15 @@ MetaVariant::as_boolean(bool default_ // = false
 
 
 /**
- * Returns a (long) integer representation of this MetaVariant object.
+ * Returns an integer representation of this MetaVariant object.
  *
- * This function attempts to return the (long) integer that best represents
- * this MetaVariant object. The `long` type was chosen for support values
+ * This function attempts to return the (Long) integer that best represents
+ * this MetaVariant object. The `Long` type was chosen for support values
  * potentially larger than 32 bits.
  *
  * It handles all different data types that MetaVariant can contain and manages
  * potential conversion issues. In cases of overflow, it returns the maximum
- * or minimum possible long value to provide a safe fallback.
+ * or minimum possible Long value to provide a safe fallback.
  * 
  * If the value cannot be expressed as an integer (such as empty fields or
  * malformed strings), the function returns the `default_` parameter.
@@ -254,34 +254,34 @@ MetaVariant::as_boolean(bool default_ // = false
  * @param default_ An optional fallback value to be returned when integer
  *                 representation isn't possible. Default is 0L.
  * @return
- *     A (long) integer that represents this meta-variant.
- *     The return value is either the converted integer, max/min long in case
- *     of overflow, or the provided `default_` parameter upon failure.
+ *     A (Long) integer that represents this meta-variant.
+ *     The return value is either the converted integer, max/min Long in case
+ *     of overflow/underflow, or the provided `default_` parameter upon failure.
  */
-long
-MetaVariant::as_integer(long default_ // = 0L
+Long
+MetaVariant::as_integer(Long default_ // = 0
 ) const noexcept {
     switch( _type )
     {
         case Type::BOOL:
             return get<bool>(_value) ? 1L : 0L;
 
-        case Type::LONG_INT:
-            return get<long int>(_value);
+        case Type::LONG:
+            return get<Long>(_value);
 
-        case Type::LONG_UNSIGNED:
+        case Type::ULONG:
             // solve potential overflow when converting
-            if( get<long unsigned>(_value) > std::numeric_limits<long>::max() )
-            { return std::numeric_limits<long>::max(); }
-            return static_cast<long>( get<long unsigned>(_value) );
+            if( get<ULong>(_value) > std::numeric_limits<Long>::max() )
+            { return std::numeric_limits<Long>::max(); }
+            return static_cast<Long>( get<ULong>(_value) );
         
         case Type::DOUBLE:
             // solve potential overflow when converting
-            if( get<double>(_value) > std::numeric_limits<long>::max() )
-            { return std::numeric_limits<long>::max(); }
-            if ( get<double>(_value) < std::numeric_limits<long>::min() )
-            { return std::numeric_limits<long>::min();  }
-            return static_cast<long>( get<double>(_value) );
+            if( get<double>(_value) > std::numeric_limits<Long>::max() )
+            { return std::numeric_limits<Long>::max(); }
+            if ( get<double>(_value) < std::numeric_limits<Long>::min() )
+            { return std::numeric_limits<Long>::min();  }
+            return static_cast<Long>( get<double>(_value) );
 
         case Type::STRING:
             try {
@@ -295,15 +295,15 @@ MetaVariant::as_integer(long default_ // = 0L
 
 
 /**
- * Returns an unsigned (long) integer representation of this MetaVariant object.
+ * Returns an unsigned integer representation of this MetaVariant object.
  *
- * This function attempts to return the unsigned (long) integer that best
- * represents this MetaVariant object. The `unsigned long` type was chosen to
- * support values potentially larger than 32 bits.
+ * This function attempts to return the (ULong) unsigned integer that best
+ * represents this MetaVariant object. The `ULong` type was chosen to support
+ * values potentially larger than 32 bits.
  *
  * It handles all different data types that MetaVariant can contain and manages
- * potential conversion issues. In cases of overflow, it returns the maximum
- * possible unsigned long value to provide a safe fallback.
+ * potential conversion issues. In cases of overflow or underflow, it returns
+ * the maximum or minimum possible ULong value to provide a safe fallback.
  * 
  * If the value cannot be expressed as an unsigned integer (such as empty
  * fields, or malformed strings), the function returns the `default_`
@@ -312,34 +312,34 @@ MetaVariant::as_integer(long default_ // = 0L
  * @param default_ An optional fallback value to be returned when unsigned
  *                 integer representation isn't possible. Default is 0UL.
  * @return
- *     An unsigned (long) integer that represents this meta-variant.
+ *     A (ULong) integer that represents this meta-variant.
  *     The return value is either the converted unsigned integer, max/min
- *     unsigned long value in case of overflow, or the provided `default_`
+ *     ULong value in case of overflow/underflow, or the provided `default_`
  *     parameter upon failure.
  */
-unsigned long
-MetaVariant::as_unsigned(unsigned long default_ // = 0UL
+ULong
+MetaVariant::as_unsigned(ULong default_ // = 0
 ) const noexcept {
     switch( _type ) {
 
         case Type::BOOL:
             return get<bool>(_value) ? 1UL : 0UL;
 
-        case Type::LONG_INT:
+        case Type::LONG:
             // solve potential negative values
-            if( get<long int>(_value) < 0 ) { return 0UL; }
-            return static_cast<unsigned long>( get<long int>(_value) );
+            if( get<Long>(_value) < 0 ) { return 0; }
+            return static_cast<ULong>( get<Long>(_value) );
 
-        case Type::LONG_UNSIGNED:
-            return get<long unsigned>(_value);
+        case Type::ULONG:
+            return get<ULong>(_value);
 
         case Type::DOUBLE:
             // solve potential overflow when converting
-            if( get<double>(_value)> std::numeric_limits<unsigned long>::max() )
-            { return std::numeric_limits<unsigned long>::max(); }
-            if ( get<double>(_value) < std::numeric_limits<unsigned long>::min() )
-            { return std::numeric_limits<unsigned long>::min();  }
-            return static_cast<unsigned long>( get<double>(_value) );
+            if( get<double>(_value)> std::numeric_limits<ULong>::max() )
+            { return std::numeric_limits<ULong>::max(); }
+            if ( get<double>(_value) < std::numeric_limits<ULong>::min() )
+            { return std::numeric_limits<ULong>::min();  }
+            return static_cast<ULong>( get<double>(_value) );
 
         case Type::STRING: {
             try {
@@ -381,11 +381,11 @@ MetaVariant::as_double(double default_ // = 0.0
         case Type::BOOL:
             return get<bool>(_value) ? 1.0 : 0.0;
 
-        case Type::LONG_INT:
-            return static_cast<double>( get<long int>(_value) );
+        case Type::LONG:
+            return static_cast<double>( get<Long>(_value) );
 
-        case Type::LONG_UNSIGNED:
-            return static_cast<double>( get<long unsigned>(_value) );
+        case Type::ULONG:
+            return static_cast<double>( get<ULong>(_value) );
 
         case Type::DOUBLE:
             return get<double>(_value);
@@ -425,11 +425,11 @@ String
 MetaVariant::as_string(StringView default_ // = ""
 ) const noexcept {
     switch( _type ) {
-        case Type::BOOL         : return get<bool>(_value) ? "true" : "false";
-        case Type::LONG_INT     : return std::to_string( get<long int     >(_value) );
-        case Type::LONG_UNSIGNED: return std::to_string( get<long unsigned>(_value) );
-        case Type::DOUBLE       : return std::to_string( get<double       >(_value) );
-        case Type::STRING       : return get<String>(_value);
+        case Type::BOOL   : return get<bool>(_value) ? "true" : "false";
+        case Type::LONG   : return std::to_string( get<Long  >(_value) );
+        case Type::ULONG  : return std::to_string( get<ULong >(_value) );
+        case Type::DOUBLE : return std::to_string( get<double>(_value) );
+        case Type::STRING : return get<String>(_value);
         default:
             return String{ default_ };
     }

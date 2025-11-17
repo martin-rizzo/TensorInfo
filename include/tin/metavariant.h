@@ -22,9 +22,9 @@ namespace tin {
  * A variant type designed to store checkpoint metadata values.
  *
  * This class provides a type-safe way to hold checkpoint metadata values.
- * It supports multiple data types such as "booleam" (bool), "integer" (long),
- * "unsigned" (unsigned long), "double", and "string". The class also allows
- * specifying the intended storage type for use in file formats like GGUF.
+ * It supports multiple data types such as "booleam" (bool), "integer" (Long),
+ * "unsigned" (ULong), "double", and "string". The class also allows specifying
+ * the intended storage type for use in file formats like GGUF.
  *
  * Explicit constructors are provided for each supported type to ensure clear
  * and intuitive initialization. Additionally, conversion methods allow
@@ -62,11 +62,11 @@ public:
 
 // CONSTRUCTION
 public:
-    explicit MetaVariant(bool           value , StorageType storageType = StorageType::BOOL   ) noexcept;
-    explicit MetaVariant(long           value , StorageType storageType = StorageType::INT32  ) noexcept;
-    explicit MetaVariant(unsigned long  value , StorageType storageType = StorageType::UINT32 ) noexcept;
-    explicit MetaVariant(double         value , StorageType storageType = StorageType::FLOAT32) noexcept;
-    explicit MetaVariant(StringView     value , StorageType storageType = StorageType::STRING ) noexcept;
+    explicit MetaVariant(bool       value , StorageType storageType = StorageType::BOOL   ) noexcept;
+    explicit MetaVariant(Long       value , StorageType storageType = StorageType::INT32  ) noexcept;
+    explicit MetaVariant(ULong      value , StorageType storageType = StorageType::UINT32 ) noexcept;
+    explicit MetaVariant(double     value , StorageType storageType = StorageType::FLOAT32) noexcept;
+    explicit MetaVariant(StringView value , StorageType storageType = StorageType::STRING ) noexcept;
     //explicit MetaVariant(Vector<String> vector, StorageType storageType = StorageType::ARRAY_OF_STRINGS ) noexcept;
     explicit MetaVariant(MetaVariant&& other) noexcept;
 private:
@@ -75,11 +75,11 @@ private:
 
 // CONVERSIONS
 public:
-    bool           as_boolean (bool          default_ = false) const noexcept;
-    long           as_integer (long          default_ = 0L   ) const noexcept;
-    unsigned long  as_unsigned(unsigned long default_ = 0UL  ) const noexcept;
-    double         as_double  (double        default_ = 0.0  ) const noexcept;
-    String         as_string  (StringView    default_ = ""   ) const noexcept;
+    bool   as_boolean (bool       default_ = false) const noexcept;
+    Long   as_integer (Long       default_ = 0    ) const noexcept;
+    ULong  as_unsigned(ULong      default_ = 0    ) const noexcept;
+    double as_double  (double     default_ = 0.0  ) const noexcept;
+    String as_string  (StringView default_ = ""   ) const noexcept;
     //Vector<String> as_string_vector() const noexcept;
     
 // TYPE HINTS
@@ -90,8 +90,8 @@ public:
 
 // IMPLEMENTATION
 private:
-    using      Variant = std::variant<bool, long int, unsigned long, double, String>;
-    enum class Type { NONE, BOOL, LONG_INT, LONG_UNSIGNED, DOUBLE, STRING
+    using      Variant = std::variant<bool, Long, ULong, double, String>;
+    enum class Type { NONE, BOOL, LONG, ULONG, DOUBLE, STRING
                       /*STRING_VECTOR, METAVARIANT_VECTOR*/ };
 private:
     Type        _type;

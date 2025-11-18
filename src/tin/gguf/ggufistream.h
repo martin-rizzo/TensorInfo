@@ -28,7 +28,7 @@ class GGUFIStream
 {
 // CONSTRUCTION/DESTRUCTION
 public:
-    explicit GGUFIStream(std::istream& istream) noexcept;
+    explicit GGUFIStream(std::istream& istream, ULong maxStringSize = 256 * 1024) noexcept;
     ~GGUFIStream() = default;
 
 // READING GGUF DATA TYPES
@@ -67,7 +67,9 @@ public:
     
 // IMPLEMENTATION
 private:
-    std::istream& _istream; //!< Reference to the underlying input stream
+    std::istream& _istream;       ///< Reference to the underlying input stream
+    ULong         _maxStringSize; ///< Maximum string size in bytes, strings will be truncated to this size for safety.
+                                  ///< A value of 0 means no limits.
 };
 
 

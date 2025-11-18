@@ -17,10 +17,16 @@ using std::nullopt;
 
 /**
  * Constructs a GGUFIStream associating it with an existing `std::istream`.
- * @param istream A reference to the input stream that this GGUFIStream will use.
+ * @param istream        A reference to the input stream that this GGUFIStream will use.
+ * @param maxStringSize  The maximum size (in bytes) of a string to read from the stream,
+ *                       used to prevent memory exhaustion attacks. Any strings longer
+ *                       than this value will be truncated. A value of 0 means no limits.
+ *                       Defaults to 256KB.
  */
-GGUFIStream::GGUFIStream(std::istream& istream) noexcept
-: _istream{istream}
+GGUFIStream::GGUFIStream(std::istream& istream,
+                         ULong         maxStringSize // = 256 * 1024
+) noexcept
+: _istream{istream}, _maxStringSize{maxStringSize}
 {}
 
 //======================== READING GGUF DATA TYPES ========================//
@@ -269,10 +275,20 @@ GGUFIStream::read_float64() noexcept {
  */
 Optional<String>
 GGUFIStream::read_string() noexcept {
-    const auto length = read_le_uint64();
+    auto length = read_le_uint64();
     if( !length ) { return nullopt; }
-    String string( *length, '\0' );
-    if( !_istream.read(string.data(), string.size()) ) { return nullopt; }
+
+    // read at most `_maxStringLength` characters,
+    // ignoring any additional characters
+    ULong stringSize = *length;
+    ULong ignoreSize = 0;
+    if( _maxStringSize>0 && stringSize > _maxStringSize ) {
+        ignoreSize =  stringSize - _maxStringSize;
+        stringSize = _maxStringSize;
+    }
+    String string( stringSize, '\0' );
+    if( !_istream.read(string.data(), string.size())      ) { return nullopt; }
+    if( ignoreSize>0 && !_istream.ignore(ignoreSize ) ) { return nullopt; }
     return string;
 }
 

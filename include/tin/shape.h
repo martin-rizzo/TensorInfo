@@ -65,13 +65,13 @@ public:
     /**
      * Constructs a copy of the given shape.
      */
-    explicit Shape(const Shape& other) = default;
+    Shape(const Shape& other) = default;
 
 
     /**
      * Constructs a move copy of the given shape.
      */
-    explicit Shape(Shape&& other) noexcept = default;
+    Shape(Shape&& other) noexcept = default;
 
 
     /**
@@ -86,27 +86,27 @@ public:
 
 
     /**
-     * Constructs a shape from a vector of dimensions.
-     * @param dims A `std::vector` containing the dimensions.
+     * Constructs a shape from a vector of dimensions. (unsigned int variant)
+     * @param dims A `std::vector` containing the dimensions. (as unsigned int elements)
      * @code
-     * std::vector<unsigned int> shape_dims = {2, 3, 4};
+     * std::vector<unsigned> shape_dims = {2, 3, 4};
      * auto shape = Shape{shape_dims};
      * @endcode
      */
-    explicit constexpr Shape(const std::vector<unsigned int>& dims)
+    explicit constexpr Shape(const std::vector<unsigned>& dims)
     : _dims(dims) { }
 
 
     /**
-     * Constructs a shape from a vector of dimensions (size_t variant).
-     *
-     * @param dims A `std::vector` containing the dimensions (as size_t elements).
+     * Constructs a shape from a vector of dimensions. (ULong variant)
+     * @param dims A `std::vector` containing the dimensions. (as ULong elements)
      * @code
-     * std::vector<size_t> shape_dims = {2, 3, 4};
+     * std::vector<ULong> shape_dims = {2, 3, 4};
      * auto shape = Shape{shape_dims};
      * @endcode
      */
-    explicit constexpr Shape(const std::vector<size_t>& dims) {
+    explicit constexpr Shape(const std::vector<ULong>& dims) {
+        _dims.reserve( dims.size() );
         for( auto d: dims ) { _dims.push_back( static_cast<value_type>(d) );  }
     }
 

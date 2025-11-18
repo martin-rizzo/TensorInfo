@@ -292,6 +292,13 @@ GGUFIStream::read_string() noexcept {
     return string;
 }
 
+Optional<GGMLType>
+GGUFIStream::read_ggml_type() noexcept {
+    auto uint32 = read_le_uint32();
+    if( !uint32 ) { return nullopt; }
+    return static_cast<GGMLType>(*uint32);
+}
+
 /**
  * Reads a metadata value type from the stream.
  *
@@ -303,6 +310,20 @@ GGUFIStream::read_metadata_value_type() noexcept {
     const auto type = read_le_uint32();
     if( !type ) { return nullopt; }
     return static_cast<GGUFMetadataValueType>( *type );
+}
+
+// lee una secuencia de enteros uint64_t de longitud determinada
+// y lo sretorna como un vector de ULong
+Optional<Vector<ULong>>
+GGUFIStream::read_seq_of_le_uint64(unsigned size) noexcept {
+    Vector<ULong> sequence;
+    sequence.reserve( size );
+    for( unsigned i=0 ; i<size ; ++i ) {
+        auto value = read_le_uint64();
+        if( !value ) { return nullopt; }
+        sequence.push_back(*value);
+    }
+    return sequence;
 }
 
 //======================= IGNORING GGUF DATA TYPES ========================//

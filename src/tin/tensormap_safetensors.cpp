@@ -91,31 +91,50 @@ _read_sizet_array(const json::Value& value
     return array;
 }
 
-
 /**
- * Attempts to insert tensor information into the provided `tensorMap`.
+ * Appends a checkpoint metadata entry in the provided metadata container.
  *
- * This function extracts necessary details from a JSON object representing
- * information about a tensor (e.g., its data type, shape, etc). If all
- * required components are valid, it constructs a `TensorInfo` object
- * and inserts it into the `tensorMap` using the provided name.
+ * This function modifies the `metadata` container by adding a new key-value pair.
+ * If the specified key already exists, its corresponding value is updated.
+ * If `jsonName` or `jsonValue` are not strings, no action is taken and the
+ * function returns without making any changes.
  *
- * @param[in] tensorMap  The map where tensor information will be stored.
- * @param[in] jsonName   JSon object containing the tensor's name.
- * @param[in] jsonValue  JSON object containing the tensor's data type, shape, etc
- * @param[in] ptrPath    Shared pointer to a Path object, representing the path to
- *                       file where the tensor raw data is stored. Can be `nullptr`
- * @param[in] byteBufferOffset
- *                       Offset within the file where the raw-data is stored.
- *                       This parameter is NOT the offset of the tensor data in the
- *                       file, but the offset where the main data block starts.
+ * @param metadata   The Metadata container that will be updated.
+ * @param jsonName   A JSON object containing the name (key) of the metadata.
+ * @param jsonValue  A JSON object containing the value associated with the metadata key. 
  */
 static void
-_insert_tensor_info(TensorMap&            tensorMap,
-                    const json::Value&    jsonName,
-                    const json::Value&    jsonValue,
-                    SharedPtr<const Path> ptrPath,
-                    size_t                byteBufferOffset
+_append_checkpoint_metadata(Metadata&          metadata,
+                            const json::Value& jsonName,
+                            const json::Value& jsonValue
+){
+    if( !jsonName.IsString()  ) { return; }
+    if( !jsonValue.IsString() ) { return; }
+    auto name  = StringView{ jsonName.GetString() };
+    auto value = StringView{ jsonValue.GetString() };
+    if( name.empty() ) { return; }
+    metadata.set_string( name, value );
+}
+
+/**
+ * Adds a TensorInfo entry to the provided vector.
+ *
+ * This function processes the given JSON values to extract necessary tensor
+ * attributes, including name, data type, shape, and data offsets. If these
+ * attributes are valid, it constructs a new `TensorInfo` object and appends
+ * it to the specified `tensors` vector.
+ * The function returns without making any changes if any of the checks fail.
+ *
+ * @param tensors   A reference to the vector of TensorInfo objects which will be updated.
+ * @param jsonName  A JSON value expected to contain the name (key) for the tensor.
+ * @param jsonValue A JSON object containing attributes like dtype, shape, and data_offsets associated with the tensor.
+ * @param ptrPath   A shared pointer to a Path object indicating the source file path.
+ */
+static void
+_append_tensor_info(std::vector<TensorInfo>& tensors,
+                    const json::Value&       jsonName,
+                    const json::Value&       jsonValue,
+                    SharedPtr<const Path>    ptrPath
 ){
     if( !jsonName.IsString()  ) { return; }
     if( !jsonValue.IsObject() ) { return; }
@@ -127,40 +146,14 @@ _insert_tensor_info(TensorMap&            tensorMap,
     if( name.empty() || !dtype || !shapeArray || !offsetArray ) { return; }
     if( offsetArray->size() != 2 ) { return; }
 
-    tensorMap.insert( TensorInfo{ name,
-                                  *dtype,
-                                  Shape{ *shapeArray },
-                                  ptrPath,
-                                  static_cast<std::streampos>(offsetArray->at(0) + byteBufferOffset),
-                                  static_cast<std::streampos>(offsetArray->at(1) + byteBufferOffset)
-    });
+    tensors.emplace_back( name,
+                          *dtype,
+                          Shape{ *shapeArray },
+                          ptrPath,
+                          static_cast<std::streampos>(offsetArray->at(0)),
+                          static_cast<std::streampos>(offsetArray->at(1))
+                        );
 }
-
-/**
- * Attempts to set a new metadata key/value pair in the `tensorMap`.
- *
- * This function updates or inserts metadata into the `tensorMap` if both
- * provided JSON values represent valid strings.
- *
- * @param[in] tensorMap  The map where the metadata will be inserted.
- * @param[in] jsonName   JSON object containing the metadata name.
- * @param[in] jsonValue  JSON object containing the metadata value.
- */
-static void
-_insert_checkpoint_metadata(TensorMap&         tensorMap,
-                            const json::Value& jsonName,
-                            const json::Value& jsonValue
-){
-    if( !jsonName.IsString()  ) { return; }
-    if( !jsonValue.IsString() ) { return; }
-
-    auto name  = StringView{ jsonName.GetString() };
-    auto value = StringView{ jsonValue.GetString() };
-    if( name.empty() ) { return; }
-
-    tensorMap.metadata().set_string( name, value );
-}
-
 
 //===================== READING FROM SAFETENSORS FILE =====================//
 
@@ -189,9 +182,8 @@ TensorMap::_fromsafetensors(const uint8_t   firstBytes[8],
                             const Path&     filePath,          // = {},
                             std::streamsize fileSize,          // = 0
                             std::streampos  byteBufferPosition // = 0
-) noexcept {
-    TensorMap tensorMap;
-
+) noexcept
+{
     // first 8 bytes are header size (64-bit little endian)
     const size_t headerSize{ (static_cast<size_t>(firstBytes[0]) <<  0) |
                              (static_cast<size_t>(firstBytes[1]) <<  8) |
@@ -208,15 +200,15 @@ TensorMap::_fromsafetensors(const uint8_t   firstBytes[8],
     const size_t maxHeaderSize = fileSize>0
                         ? std::max<size_t>(MaximumSafeHeaderSize, fileSize/500)
                         : 10*MaximumSafeHeaderSize;
-    if( headerSize > maxHeaderSize ) { outError = ReadError::HeaderTooLarge; return tensorMap;  }
+    if( headerSize > maxHeaderSize ) { outError = ReadError::HeaderTooLarge; return {};  }
 
     // allocate a block of memory for the header
     auto buffer = std::make_unique<char[]>(headerSize + 4);
-    if( !buffer ) { outError = ReadError::MemoryAllocationFailed; return tensorMap; }
+    if( !buffer ) { outError = ReadError::MemoryAllocationFailed; return {}; }
 
     // read header from istream
     istream.read(buffer.get(), headerSize);
-    if( istream.fail() ) { outError = ReadError::InvalidFormat; return tensorMap; }
+    if( istream.fail() ) { outError = ReadError::InvalidFormat; return {}; }
 
     // add 4 termination characters at the end of the buffer, just in case
     buffer[headerSize+0] = buffer[headerSize+1] = '\0';
@@ -232,11 +224,14 @@ TensorMap::_fromsafetensors(const uint8_t   firstBytes[8],
     json::Document document;
     document.ParseInsitu( buffer.get() );
     if( document.HasParseError() || !document.IsObject() ) {
-        outError = ReadError::InvalidFormat; return tensorMap;
+        outError = ReadError::InvalidFormat; return {};
     }
 
     // the path that will be shared by all tensors
     auto ptrPath = std::make_shared<const Path>(filePath);
+
+    Metadata                metadata;
+    std::vector<TensorInfo> tensors;
 
     // iterate over each element within the JSON document, creating a `TensorInfo`
     // entry for each one. Element named "__metadata__" is handled separately.
@@ -251,35 +246,35 @@ TensorMap::_fromsafetensors(const uint8_t   firstBytes[8],
         if( tensorName == "__metadata__"  )
         {
             // handling for "__metadata__" element, this element is expected to
-            // be an object containing the metadata elements in key/value pairs.
+            // be an object containing the metadata elements in key/value pairs
             auto jsonMetadataDict = jsonElement.value.GetObject();
-            for( const auto& jsonMetadataKV : jsonMetadataDict )
-            {
-                _insert_checkpoint_metadata(tensorMap,
-                                            jsonMetadataKV.name,
-                                            jsonMetadataKV.value
-                                            );
+            for( const auto& jsonMetadataKV : jsonMetadataDict ) {
+                // append the key/value pair as checkpoint metadata
+                _append_checkpoint_metadata( metadata,
+                                             jsonMetadataKV.name,
+                                             jsonMetadataKV.value
+                                             );
             }
         }
         else
         {
-            // insert a new TensorInfo entry into the map
-            _insert_tensor_info(tensorMap,
-                                jsonElement.name,
-                                jsonElement.value,
-                                ptrPath, byteBufferPosition
-                                );
+            // handling for tensor element, this element is expected to contain
+            // the name of a tensor, and an object value containing tensor info
+            _append_tensor_info( tensors,
+                                 jsonElement.name,
+                                 jsonElement.value,
+                                 ptrPath
+                                 );
        }
     }
-    return tensorMap;
+    // create the final `TensorMap` object from the parsed tensors and metadata
+    return { std::move(tensors), std::move(metadata), byteBufferPosition };
 }
 
 
 //====================== WRITING TO SAFETENSORS FILE ======================//
 
-
-
-
+/// TODO: implement writing to safetensors file
 
 
 } // namespace tin

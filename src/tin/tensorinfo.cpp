@@ -130,7 +130,7 @@ TensorInfo::TensorInfo(TensorInfo&&   other,
  * @param rawDataOffset An optional offset for `rawDataBegin` and `rawDataEnd`.
  */
 TensorInfo::TensorInfo(const TensorInfo& other,
-                       std::streampos rawDataOffset // = 0
+                       std::streampos    rawDataOffset // = 0
 ) noexcept
 : _ptrName{ other._ptrName },
   _ptrUnnamedTensorInfo{

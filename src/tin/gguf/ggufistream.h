@@ -12,8 +12,8 @@
 #pragma once
 #ifndef TIN_GGUFISREAM_H_
 #define TIN_GGUFISREAM_H_
-#include "ggufconstants.h" // for GGUFMetadataValueType
-#include <tin/common.h> // for Optional<T>, String, ULong, Long
+#include "ggufconstants.h" // for GGUFMetadataValueType, GGMLType
+#include <tin/common.h>    // for Optional<T>, String, ULong, Long
 namespace tin {
 
 
@@ -45,7 +45,9 @@ public:
     Optional<float>     read_float32()    noexcept;
     Optional<double>    read_float64()    noexcept;
     Optional<String>    read_string()     noexcept;
+    Optional<GGMLType>  read_ggml_type()  noexcept;
     Optional<GGUFMetadataValueType> read_metadata_value_type() noexcept;
+    Optional<Vector<ULong>>         read_seq_of_le_uint64(unsigned size) noexcept;
 
 // IGNORING GGUF DATA TYPES
 public:

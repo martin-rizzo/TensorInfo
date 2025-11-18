@@ -42,8 +42,8 @@ TensorMap::TensorMap(std::vector<TensorInfo>&& tensors,
 {
     _map.reserve( tensors.size() );
     for( auto& tensor : tensors ) {
-        auto adjustedTensor = TensorInfo{ std::move(tensor), rawDataOffset };
-        _map.emplace( tensor.name(), std::move(adjustedTensor) );
+        TensorInfo adjustedTensorInfo{ std::move(tensor), rawDataOffset };
+        _map.emplace( adjustedTensorInfo.name(), adjustedTensorInfo );
     }
 }
 
@@ -71,8 +71,7 @@ TensorMap::TensorMap(const std::vector<TensorInfo>& tensors,
 {
     _map.reserve( tensors.size() );
     for( const auto& tensor : tensors ) {
-        auto adjustedTensor = TensorInfo{ tensor, rawDataOffset };
-        _map.emplace( tensor.name(), std::move(adjustedTensor) );
+        _map.emplace( tensor.name(), TensorInfo{ tensor, rawDataOffset } );
     }
 }
 

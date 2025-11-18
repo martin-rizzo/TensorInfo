@@ -68,7 +68,8 @@ public:
     explicit MetaVariant(double     value , StorageType storageType = StorageType::FLOAT32) noexcept;
     explicit MetaVariant(StringView value , StorageType storageType = StorageType::STRING ) noexcept;
     //explicit MetaVariant(Vector<String> vector, StorageType storageType = StorageType::ARRAY_OF_STRINGS ) noexcept;
-    explicit MetaVariant(MetaVariant&& other) noexcept;
+    explicit MetaVariant(MetaVariant&& other) noexcept = default;
+    explicit MetaVariant(const MetaVariant& other) = default;
 private:
     MetaVariant() noexcept;
 
@@ -98,26 +99,6 @@ private:
     Variant     _value;
     StorageType _storageType;
 };
-
-
-//============================= CONSTRUCTION ==============================//
-
-/**
- * Move constructor for MetaVariant.
- * 
- * Transfers ownership of the stored value from the 'other' object to the
- * newly created MetaVariant. The 'other' object is left in a valid but
- * unspecified state.
- * @param other  The source MetaVariant to move from
- */
-inline
-MetaVariant::MetaVariant(MetaVariant&& other) noexcept
-: _type { other._type  },
-  _value{ std::move(other._value) },
-  _storageType{ other._storageType }
-{
-    other._type = Type::NONE;
-}
 
 
 }      // namespace tin

@@ -20,17 +20,24 @@ namespace tin {
 
 class Metadata
 {
+// Type aliases for compatibility with standard containers
 public:
-    // Type aliases for compatibility with standard containers
     using key_type        = String;
     using mapped_type     = MetaVariant;
     using value_type      = std::pair<const key_type, mapped_type>;
     using size_type       = std::size_t;
     using difference_type = std::ptrdiff_t;
-    // Iterators
-    using InternalMap    = std::unordered_map<key_type, mapped_type>;
-    using iterator       = InternalMap::iterator;
-    using const_iterator = InternalMap::const_iterator;
+    using InternalMap     = std::unordered_map<key_type, mapped_type>;
+    using iterator        = InternalMap::iterator;
+    using const_iterator  = InternalMap::const_iterator;
+
+// CONSTRUCTION/DESTRUCTION
+public:
+    Metadata() noexcept  = default;
+    ~Metadata() noexcept = default;
+    Metadata(Metadata&& other) noexcept = default;
+    Metadata(const Metadata& other) = default;
+
 
 // MODIFYING METADATA VALUES
 public:

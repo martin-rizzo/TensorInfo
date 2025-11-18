@@ -31,22 +31,23 @@ namespace tin {
  */
 class TensorMap
 {
+ // Type aliases for compatibility with standard containers
 public:
-    // Type aliases for compatibility with standard containers
     using key_type        = String;
     using mapped_type     = TensorInfo;
     using value_type      = std::pair<const key_type, mapped_type>;
     using size_type       = std::size_t;
     using difference_type = std::ptrdiff_t;
-    // Iterators
-    using iterator       = std::unordered_map<String, TensorInfo>::iterator;
-    using const_iterator = std::unordered_map<String, TensorInfo>::const_iterator;
+    using iterator        = std::unordered_map<String, TensorInfo>::iterator;
+    using const_iterator  = std::unordered_map<String, TensorInfo>::const_iterator;
 
 
 // CONSTRUCTION/DESTRUCTION
 public:
-    TensorMap() = default;
-    ~TensorMap() = default;
+    TensorMap(std::vector<TensorInfo>&& tensors, Metadata&& metadata, std::streampos tensorRawDataOffset = 0) noexcept;
+    TensorMap(const std::vector<TensorInfo>& tensors, const Metadata& metadata, std::streampos tensorRawDataOffset = 0);
+    TensorMap() noexcept = default;
+    ~TensorMap() noexcept = default;
 
 // COPY/MOVE
 public:

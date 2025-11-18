@@ -33,7 +33,9 @@ namespace tin {
 class UnnamedTensorInfo
 {
 public:
-    UnnamedTensorInfo(DType dtype, const Shape& shape, SharedPtr<const Path> ptrPath, std::streampos rawDataBegin, std::streampos rawDataEnd);
+    UnnamedTensorInfo(DType dtype, const Shape& shape, SharedPtr<const Path> ptrPath, std::streampos rawDataBegin, std::streampos rawDataEnd) noexcept;
+    UnnamedTensorInfo(UnnamedTensorInfo&& other, std::streampos rawDataOffset = 0) noexcept;
+    UnnamedTensorInfo(const UnnamedTensorInfo& other, std::streampos rawDataOffset = 0) noexcept;
 
 public:
     [[nodiscard]] DType           dtype()          const { return _dtype;        }

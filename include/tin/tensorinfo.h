@@ -38,13 +38,13 @@ public:
 public:
     TensorInfo(StringView name, DType dtype, const Shape& shape, StringView            path   , std::streampos rawDataBegin, std::streampos rawDataEnd);
     TensorInfo(StringView name, DType dtype, const Shape& shape, SharedPtr<const Path> ptrPath, std::streampos rawDataBegin, std::streampos rawDataEnd);
-    TensorInfo(StringView name, const TensorInfo& other);
-    TensorInfo(const TensorInfo& other) = default;
-    TensorInfo(TensorInfo&& other) = default;
+    TensorInfo(StringView name, const TensorInfo& other) noexcept;
+    TensorInfo(TensorInfo&& other, std::streampos rawDataOffset=0) noexcept;
+    TensorInfo(const TensorInfo& other, std::streampos rawDataOffset=0) noexcept;
     ~TensorInfo() = default;
 private:
-    TensorInfo(SharedPtr<String> ptrName, SharedPtr<UnnamedTensorInfo> ptrUnnamedTensorInfo);
-    TensorInfo();
+    TensorInfo(SharedPtr<String> ptrName, SharedPtr<UnnamedTensorInfo> ptrUnnamedTensorInfo) noexcept;
+    TensorInfo() noexcept;
 
 // ATTRIBUTES
 public:

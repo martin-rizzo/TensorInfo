@@ -33,14 +33,55 @@ UnnamedTensorInfo::UnnamedTensorInfo(DType                 dtype,
                                      SharedPtr<const Path> ptrPath,
                                      std::streampos        rawDataBegin,
                                      std::streampos        rawDataEnd
-): _dtype       { dtype },
-   _shape       { shape },
-   _ptrPath     { ptrPath && !ptrPath->empty() ? ptrPath : _ptrEmptyPath },
-   _rawDataBegin{ rawDataBegin },
-   _rawDataEnd  { rawDataEnd   }
+) noexcept
+: _dtype       { dtype },
+  _shape       { shape },
+  _ptrPath     { ptrPath && !ptrPath->empty() ? ptrPath : _ptrEmptyPath },
+  _rawDataBegin{ rawDataBegin },
+  _rawDataEnd  { rawDataEnd   }
 {}
 
+/**
+ * Move constructor with optional offset for `rawDataBegin` and `rawDataEnd`.
+ *
+ * This move constructor initializes an `UnnamedTensorInfo` object by moving
+ * data from other instance to this, with the option to apply an offset to the
+ * properties `rawDataBegin` and `rawDataEnd`. If no offset is specified, it
+ * defaults to zero, effectively performing a standard move operation.
+ * 
+ * @param other         The UnnamedTensorInfo object being moved from.
+ * @param rawDataOffset An optional offset for `rawDataBegin` and `rawDataEnd`.
+ */
+UnnamedTensorInfo::UnnamedTensorInfo(UnnamedTensorInfo&& other,
+                                     std::streampos      rawDataOffset // = 0
+) noexcept
+: _dtype       { std::move(other._dtype)   },
+  _shape       { std::move(other._shape)   },
+  _ptrPath     { std::move(other._ptrPath) },
+  _rawDataBegin{ other._rawDataBegin + rawDataOffset },
+  _rawDataEnd  { other._rawDataEnd   + rawDataOffset }
+{}
 
+/**
+ * Copy constructor with optional offset for `rawDataBegin` and `rawDataEnd`.
+ *
+ * This copy constructor creates a new `UnnamedTensorInfo` object as a copy
+ * of an existing one, with the option to apply an offset to the properties
+ * `rawDataBegin` and `rawDataEnd`. If no offset is specified, it defaults to
+ * zero, resulting in a standard copy operation.
+ *
+ * @param other         The UnnamedTensorInfo object being copied from.
+ * @param rawDataOffset An optional offset for `_rawDataBegin` and `_rawDataEnd`.
+ */
+UnnamedTensorInfo::UnnamedTensorInfo(const UnnamedTensorInfo& other,
+                                     std::streampos           rawDataOffset // = 0
+) noexcept
+: _dtype       { other._dtype   },
+  _shape       { other._shape   },
+  _ptrPath     { other._ptrPath },
+  _rawDataBegin{ other._rawDataBegin + rawDataOffset },
+  _rawDataEnd  { other._rawDataEnd   + rawDataOffset }
+{}
 
 //=============================== DEBUGGING ===============================//
 

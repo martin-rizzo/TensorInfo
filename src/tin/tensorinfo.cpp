@@ -91,11 +91,53 @@ TensorInfo(
  */
 TensorInfo::TensorInfo(StringView        name,
                        const TensorInfo& other
-):
-TensorInfo(
-    make<String>(name),
-    other._ptrUnnamedTensorInfo
-)
+) noexcept
+: _ptrName{ make<String>(name) },
+  _ptrUnnamedTensorInfo{ other._ptrUnnamedTensorInfo }
+{}
+
+/**
+ * Move constructor with optional offset for `rawDataBegin` and `rawDataEnd`.
+ *
+ * This constructor initializes a `TensorInfo` object by moving from another 
+ * `TensorInfo` instance. It allows an optional offset to be applied to the 
+ * properties `rawDataBegin` and `rawDataEnd`. If no offset is specified, it
+ * defaults to zero, effectively performing a move without modification.
+ *
+ * @param other         The TensorInfo object being moved from.
+ * @param rawDataOffset An optional offset for `rawDataBegin` and `rawDataEnd`.
+ */
+TensorInfo::TensorInfo(TensorInfo&&   other,
+                       std::streampos rawDataOffset // = 0
+) noexcept
+: _ptrName{ std::move(other._ptrName) },
+  _ptrUnnamedTensorInfo{
+      rawDataOffset == 0
+          ? std::move(other._ptrUnnamedTensorInfo)
+          : std::make_shared<UnnamedTensorInfo>( std::move(*other._ptrUnnamedTensorInfo), rawDataOffset )
+  }
+{}
+
+/**
+ * Copy constructor with optional offset for `rawDataBegin` and `rawDataEnd`.
+ *
+ * This constructor creates a new `TensorInfo` object as a copy of an existing 
+ * one, with the option to apply an offset to the properties `rawDataBegin` and
+ * `rawDataEnd`. If no offset is specified, it defaults to zero, resulting in
+ * a direct copy.
+ *
+ * @param other         The TensorInfo object being copied from.
+ * @param rawDataOffset An optional offset for `rawDataBegin` and `rawDataEnd`.
+ */
+TensorInfo::TensorInfo(const TensorInfo& other,
+                       std::streampos rawDataOffset // = 0
+) noexcept
+: _ptrName{ other._ptrName },
+  _ptrUnnamedTensorInfo{
+      rawDataOffset == 0
+          ? other._ptrUnnamedTensorInfo
+          : std::make_shared<UnnamedTensorInfo>( *other._ptrUnnamedTensorInfo, rawDataOffset )
+  }
 {}
 
 
@@ -109,21 +151,20 @@ TensorInfo(
  * @param ptrName              A SharedPtr to a String representing the tensor's name.
  * @param ptrUnnamedTensorInfo A SharedPtr to an UnnamedTensorInfo object containing tensor metadata.
  */
-TensorInfo::TensorInfo(SharedPtr<String> ptrName,
+TensorInfo::TensorInfo(SharedPtr<String>            ptrName,
                        SharedPtr<UnnamedTensorInfo> ptrUnnamedTensorInfo
-): _ptrName{ ptrName },
-   _ptrUnnamedTensorInfo{ ptrUnnamedTensorInfo }
+) noexcept
+: _ptrName{ ptrName },
+  _ptrUnnamedTensorInfo{ ptrUnnamedTensorInfo }
 {}
 
 
 /**
  * Private constructor used exclusively by `TensorInfo::None`.
  */
-TensorInfo::TensorInfo()
-:  TensorInfo(
-      nullptr,
-      make<UnnamedTensorInfo>( DType::UNKNOWN, Shape{}, make<Path>(""), 0, 0 )
-   )
+TensorInfo::TensorInfo() noexcept
+: _ptrName{ nullptr },
+  _ptrUnnamedTensorInfo{ make<UnnamedTensorInfo>( DType::UNKNOWN, Shape{}, make<Path>(""), 0, 0 ) }
 {}
 
 //============================== ATTRIBUTES ===============================//

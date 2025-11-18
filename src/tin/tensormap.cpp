@@ -14,6 +14,68 @@
 #include <tin/tensormap.h>
 namespace tin {
 
+//======================= CONSTRUCTION/DESTRUCTION ========================//
+
+/**
+ * Construct a TensorMap object from an rvalue vector of tensors and metadata.
+ *
+ * This constructor initializes a `TensorMap` object using a collection of 
+ * `TensorInfo` objects provided in the input vector, along with associated 
+ * `Metadata`. It moves ownership of the tensors and metadata for efficient 
+ * resource management. Additionally, it allows specifying an optional position 
+ * offset to adjust the raw data boundaries of each tensor.
+ *
+ * @param tensors       An rvalue reference to a vector containing `TensorInfo`
+ *                      objects representing individual tensors.
+ * @param metadata      An rvalue reference to a `Metadata` object holding information
+ *                      loaded from the checkpoint file associated with the tensors.
+ * @param rawDataOffset An optional stream position offset applied to both 
+ *                      `rawDataBegin` and `rawDataEnd` properties of each tensor. 
+ *                      The default value is 0 if not specified.
+ */
+TensorMap::TensorMap(std::vector<TensorInfo>&& tensors,
+                     Metadata&&                metadata,
+                     std::streampos            rawDataOffset // = 0
+                     
+) noexcept
+: _metadata{ std::move(metadata) }
+{
+    _map.reserve( tensors.size() );
+    for( auto& tensor : tensors ) {
+        auto adjustedTensor = TensorInfo{ std::move(tensor), rawDataOffset };
+        _map.emplace( tensor.name(), std::move(adjustedTensor) );
+    }
+}
+
+/**
+ * Constructs a TensorMap object from a vector of tensors and checkpoint metadata.
+ *
+ * This constructor initializes a `TensorMap` object with the collection of
+ * tensors provided in the input vector, along with associated metadata from
+ * the checkpoint file. It also allows specifying a position offset to adjust
+ * the raw data boundaries of each tensor.
+ * 
+ * @param tensors       A vector containing `TensorInfo` objects representing
+ *                      the individual tensors.
+ * @param metadata      A `Metadata` object holding information loaded from 
+ *                      the checkpoint file associated with the tensors.
+ * @param rawDataOffset An optional stream position offset applied to both 
+ *                      `rawDataBegin` and `rawDataEnd` properties of each tensor.
+ *                      If not specified, the default value is 0.
+ */
+TensorMap::TensorMap(const std::vector<TensorInfo>& tensors,
+                     const Metadata&                metadata,
+                     std::streampos                 rawDataOffset // = 0
+) 
+: _metadata{ metadata }
+{
+    _map.reserve( tensors.size() );
+    for( const auto& tensor : tensors ) {
+        auto adjustedTensor = TensorInfo{ tensor, rawDataOffset };
+        _map.emplace( tensor.name(), std::move(adjustedTensor) );
+    }
+}
+
 //=========================== LOADING TENSORMAP ===========================//
 
 /**

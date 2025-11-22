@@ -19,9 +19,9 @@
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 project(
-    'tensorinfo',             # Project name
+    'tensorinfo',            # Project name
     'cpp',                   # Primary language
-    version: '0.0.1',        # Project version
+    version: '0.1.0',        # Project version
     license: 'MIT',          # Project license
     default_options: [
         'cpp_std=c++20',     # Default C++ standard: C++20
@@ -54,8 +54,8 @@ subdir('external' / 'rapidjson-1.1.0')
 include_dirs = include_directories('include')
 sources = [ ]
 public_headers = [ ]
-subdir('src' / 'tin' )
-subdir('include' / 'tin' )
+subdir( 'src'     / 'tin' )
+subdir( 'include' / 'tin' )
 
 # Install the public headers for the "TensorInfo" library
 install_headers(

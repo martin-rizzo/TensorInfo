@@ -19,18 +19,21 @@
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 project(
-    'tensorinfo',            # Project name
-    'cpp',                   # Primary language
-    version: '0.1.0',        # Project version
-    license: 'MIT',          # Project license
+    'tensorinfo',           # Project name
+    'cpp',                  # Primary language
     default_options: [
-        'cpp_std=c++20',     # Default C++ standard: C++20
-        'buildtype=debug',   # Default build type  : debug
-        'warning_level=3',   # Set warning level to 3 (high verbosity)
-        'werror=true',       # Treat all warnings as errors
+        'cpp_std=c++20',    # Default C++ standard: C++20
+        'buildtype=debug',  # Default build type  : debug
+        'warning_level=3',  # Set warning level to 3 (high verbosity)
+        'werror=true',      # Treat all warnings as errors
     ],
-    meson_version: '>=1.1',  # Minimum Meson version required by this project
+    version       : '0.1.0',         # Project version
+    license       : 'MIT',           # Project license
+    meson_version : '>=1.1',         # Minimum Meson version required by this project
+    subproject_dir: 'dependencies',  # Directory to search for subprojects
 )
+subproject_dir  = 'dependencies'  # Directory where subprojects are located
+
 
 #-- C++ OPTIONS ------------------------------------------------------------#
 
@@ -43,10 +46,14 @@ add_project_arguments([
     language : 'cpp'
 )
 
-#-- DEPENDENCIES -----------------------------------------------------------#
 
-# RapidJSON dependency (rapidjson_dep)
-subdir('external' / 'rapidjson-1.1.0')
+#-- DEPENDENCIES -----------------------------------------------------------#
+# (subprojects are defined in the `dependencies` directory)
+
+# RapidJSON: https://github.com/Tencent/rapidjson
+rapidjson_proj = subproject('rapidjson-1.1.0')
+rapidjson_dep = rapidjson_proj.get_variable('rapidjson_dep')
+
 
 ##=========================================================================##
 ## //////////////////////    TENSORINFO LIBRARY    /////////////////////// ##

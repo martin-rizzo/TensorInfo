@@ -9,14 +9,24 @@
 #  Meson for VS Code       : https://github.com/mesonbuild/vscode-meson
 #- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+project(
+    'rapidjson',            # Project name
+    'cpp',                  # Primary language
+    default_options: [
+        'cpp_std=c++20',    # Default C++ standard: C++20
+        'buildtype=debug',  # Default build type  : debug
+        'warning_level=3',  # Set warning level to 3 (high verbosity)
+        'werror=true',      # Treat all warnings as errors
+    ],
+    version       : '1.1.0',         # Project version
+    license       : 'MIT',           # Project license
+    meson_version : '>=1.1',         # Minimum Meson version required by this project
+)
+
 #=============================================================================
 # RapidJSON is a header-only library, requiring no separate source
 # files or external linking for dependency configuration.
 #=============================================================================
-
-## Scan source directory for C++ source files and add them to `lib_sources`
-#lib_sources = [ ]
-#subdir('source')
 
 # Include directories of Mr.Diffusion library
 include_dirs = include_directories('include')

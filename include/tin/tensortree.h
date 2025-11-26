@@ -35,6 +35,7 @@ public:
 // MODIFIERS
 public:
     bool insert(const TensorInfo& tensorInfo);
+    int  flatten_single_tensor_subnodes();
 
 
 // IMPLEMENTATION
@@ -75,6 +76,23 @@ TensorTree::insert(const TensorInfo& tensorInfo) {
                                tensorInfo.name(),
                                tensorInfo
                                );
+}
+
+/**
+ * Flattens all single tensor subnodes within the entire tree.
+ *
+ * This method traverses the entire TensorTree, identifying and removing any 
+ * subnode that contains only one tensor. The contained tensor is then moved up
+ * to its parent node, effectively flattening the structure wherever possible.
+ * This process helps in simplifying the overall tree by eliminating unnecessary
+ * hierarchical levels where a subnode does not add meaningful groupings beyond
+ * a single tensor.
+ * @return
+ *   The total number of single-tensor subnodes that were flattened.
+ */
+inline int
+TensorTree::flatten_single_tensor_subnodes() {
+    return _root.flatten_single_tensor_subnodes(true);
 }
 
 

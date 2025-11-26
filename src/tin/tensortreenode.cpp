@@ -216,6 +216,56 @@ TensorTreeNode::insert_tensor(StringView        tensorNormalizedName,
     );
 }
 
+/**
+ * Flattens all subnodes that contain only one tensor.
+ *
+ * This method iterates through each subnode within the current node. If a 
+ * subnode contains only one tensor, it removes that subnode from the tree 
+ * structure and moves its tensor up to the parent level.
+ * 
+ * The process can be applied recursively to all descendant nodes if desired.
+ * (this is useful for cleaning up the tree by eliminating subnodes with just
+ * a single tensor).
+ *
+ * @param recursive Set to `true` if the flattening should apply not only to
+ *                  immediate children but also to all subsequent child nodes,
+ *                  effectively cleaning up entire branches of single-tensor
+ *                  subnodes. Defaults to `false`.
+ * 
+ * @return The total number of single-tensor subnodes that were flattened.
+ */
+int
+TensorTreeNode::flatten_single_tensor_subnodes(bool recursive // = false
+){
+    int count = 0;
+
+    // if recursion is enabled, apply the same procedure to all child nodes
+    if( recursive ) {
+        for( auto& [_, subnode]: _subnodeMap ) {
+            count += subnode.flatten_single_tensor_subnodes(recursive);
+        }
+    }
+    // flatten any immediate single-tensor subnode
+    for( auto it = _subnodeMap.begin(); it != _subnodeMap.end(); ) {
+        const auto& subnodeNormalizedName = it->first;
+        const auto& subnode               = it->second;
+        if( subnode._tensorMap.size() == 1 )
+        {
+            // if subnode has only one tensor, move its tensor to this node
+            auto& [tensorNormalizedName, tensor] = *subnode._tensorMap.begin();
+            _tensorMap.emplace( subnodeNormalizedName + "." + tensorNormalizedName,
+                                std::move(tensor) );
+
+            // erase the now empty subnode from the subnode map
+            it = _subnodeMap.erase(it);
+            ++count;
+            continue;
+        }
+        ++it;
+    }
+    return count;
+}
+
 //============================= IMPLEMENATION =============================//
 
 /**

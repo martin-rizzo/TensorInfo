@@ -44,6 +44,8 @@ public:
 public:
     TensorTreeNode& ensure_subnode(StringView normalizedName, StringView name);
     bool            insert_tensor(StringView normalizedPath, StringView tensorPath, const TensorInfo& tensor);
+    int             flatten_single_tensor_subnodes(bool recursive = false);
+
     
 // IMPLEMENTATION
 private:

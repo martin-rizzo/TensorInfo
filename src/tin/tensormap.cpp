@@ -214,7 +214,7 @@ TensorMap::collect_tensors(SortBy sortBy // = SortBy::UNSORTED
     std::vector<TensorInfo> result;
     result.reserve( _map.size() );
 
-    if( sortBy == SortBy::UNSORTED ) {
+    if( sortBy == SortBy::NONE ) {
         // NO SORTING:
         // just copy all TensorInfo objects from the map to the result vector
         for( const auto& pair : _map ) {
@@ -235,8 +235,7 @@ TensorMap::collect_tensors(SortBy sortBy // = SortBy::UNSORTED
                     [sortBy](const WrapperPtr& a, const WrapperPtr& b)
             {
                 switch( sortBy ) {
-                    case SortBy::NAME:           return a->name()       <  b->name();
-                    case SortBy::NAME_AND_INDEX: return a->normalName() <  b->normalName();
+                    case SortBy::NAME:           return a->normalName() <  b->normalName();
                     case SortBy::DTYPE:          return a->dtype()      <  b->dtype();
                     case SortBy::BYTES:          return a->bytes()      <  b->bytes();
                     case SortBy::NUMEL:          return a->numel()      <  b->numel();

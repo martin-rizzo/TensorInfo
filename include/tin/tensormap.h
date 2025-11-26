@@ -67,7 +67,7 @@ public:
     [[nodiscard]] const TensorInfo& operator[](const String& name) const noexcept;
     [[nodiscard]] const_iterator find(const String& name) const noexcept;
     [[nodiscard]] bool           contains(const String& name) const noexcept;
-    [[nodiscard]] std::vector<TensorInfo> collect_tensors(SortBy sortBy = SortBy::UNSORTED) const noexcept;
+    [[nodiscard]] std::vector<TensorInfo> collect_tensors(SortBy sortBy = SortBy::NONE) const noexcept;
 
 
 // MODIFYING THE MAP

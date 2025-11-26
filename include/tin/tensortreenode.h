@@ -35,8 +35,10 @@ public:
 // QUERY METHODS
 public:
     const String&                       name() const noexcept;
-    const Vector<const TensorTreeNode*> collect_subnodes(bool recursive = false) const noexcept;
-    const Vector<const TensorInfo*>     collect_tensors(bool recursive = false) const noexcept;
+    StringView                          relative_name(StringView prefix) const noexcept;
+    const Vector<const TensorTreeNode*> subnode_pointers(SortBy sortBy = SortBy::NAME, bool recursive = false) const noexcept;
+    const Vector<const TensorInfo*>     tensor_pointers(SortBy sortBy = SortBy::NAME, bool recursive = false) const noexcept;
+    //const Vector<const TensorInfo>      collect_tensors(SortBy sortBy = SortBy::UNSORTED, bool recursive = false) const noexcept;
 
 // NODE MANIPULATION
 public:
@@ -56,11 +58,18 @@ private:
 
 //======================== INLINES: QUERY METHODS =========================//
 
+/**
+ * Constructs a new TensorTreeNode with the specified name.
+ * @param name The name to assign to this node.
+ */
 inline
 TensorTreeNode::TensorTreeNode(StringView name
 ): _name{ name }
 { }
 
+/**
+ * Gets the name of the current node.
+ */
 inline const String&
 TensorTreeNode::name() const noexcept {
     return _name;

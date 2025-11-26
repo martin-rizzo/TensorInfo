@@ -15,76 +15,127 @@ namespace tin {
 //============================= QUERY METHODS =============================//
 
 /**
- * Collects the subnodes of this node.
+ * Returns the relative name of this node based on a given prefix.
  *
- * This method returns a list of pointers to the subnodes of the current node.
- * The behavior depends on whether the operation is recursive or not:
- *  - If non-recursive, only the immediate subnodes are collected and returned
- *    in alphabetical order.
- *  - If recursive, all subnodes (including those from descendant nodes) are
- *    collected but without any guaranteed order.
+ * This function takes a prefix and removes it from the node's name, returning
+ * the remaining portion as a StringView.
+ * 
+ * If the prefix is not valid (i.e., the prefix does not match at the beginning 
+ * of the node's name or does not cover a complete segment of the name), an 
+ * empty string is returned.
+ * 
+ * @param prefix The prefix to be removed from the node's name.
+ * @return A string view with the relative name after removing the prefix,
+ *         or an empty string if the prefix is invalid.
+ */
+StringView
+TensorTreeNode::relative_name(StringView prefix
+) const noexcept {
+    // if no prefix was provided, return the full name
+    if( prefix.empty() ) { return name(); }
+
+    // remove any trailing dot from the user provided prefix
+    if( prefix.ends_with('.') ) { prefix.remove_suffix(1); }
+
+    // if the prefix does not match at position 0,
+    // it is invalid, return an empty string
+    auto pos = name().find(prefix);
+    if( pos != 0 ) { return ""; }
+
+    // create a string_view from the node's name and remove the prefix
+    StringView result{ name() };
+    result.remove_prefix( prefix.size() );
+
+    // if the resulting name does not start with a dot,
+    // the prefix split a segment in half, return an empty string
+    if( !result.starts_with('.') ) {
+        return "";
+    }
+    // remove the leading dot and return the remaining relative name.
+    result.remove_prefix(1);
+    return result;
+}
+
+/**
+ * Returns pointers to all subnodes of this node, ordered by name by default.
  *
- * @param recursive  Determines if only direct children of this node should be
- *                   collected (false,default); or all subnodes should be
- *                   collected (true).
+ * If `recursive` is true, this method also includes subnodes from child
+ * nodes in recursive manner.
+ *
+ * @param sortBy    The sorting criterion for the resulting list.
+ * @param recursive Determines if only direct children of this node should be
+ *                  included (`false`, default); or all subnodes should be
+ *                  included (`true`).
  * @return
- *     A Vector containing pointers to the collected TensorTreeNode objects.
+ *     A vector of pointers to `TensorTreeNode` objects representing the subnodes.
  */
 const Vector<const TensorTreeNode*>
-TensorTreeNode::collect_subnodes(bool recursive // = false
+TensorTreeNode::subnode_pointers(SortBy sortBy,   // = SortBy::NAME
+                                 bool   recursive // = false
 ) const noexcept {
     Vector<const TensorTreeNode*> result;
+    SortBy currentOrder{ SortBy::NONE };
 
-    // si no es recursivo, solo extraer los subnodos del nodo actual
-    // se garantiza el orden alfabético-natural de los subnodos en la lista
+    // if not recursive, only extract immediate subnodes
+    // (guaranteed to be in alphabetical-natural order)
     if( !recursive ) {
         result.reserve(_subnodeMap.size());
         for( const auto& [normalizedName, node] : _subnodeMap ) {
             result.push_back(&node);
         }
+        currentOrder = SortBy::NAME;
     }
-    // si es recursivo, extraer todos los subnodos de este nodo y sus hijos
-    // no se garantiza ningún orden en la lista de subnodos
+    // if recursive, collect all subnodes including descendants
+    // (no order is guaranteed)
     else {
-        result.reserve(1024);
+        result.reserve(1024); // arbitrary capacity estimation
         _collect_recursively(result);
+        currentOrder = SortBy::NONE;
+    }
+    if( sortBy != SortBy::NONE && sortBy != currentOrder ) {
+        /// TODO: implement node sorting by the "sortBy" parameter
     }
     return result;
 }
 
 /**
- * Collects the tensor information objects within this node.
+ * Returns pointers to all tensors of this node, ordered by name by default.
  *
- * This method returns a list of TensorInfo pointers that are contained within
- * the current node. The behavior depends on whether the operation is recursive
- * or not:
- *   - If non-recursive, only the tensors directly stored in this node are
- *     collected and returned in alphabetical order.
- *   - If recursive, all tensors (including those from descendant nodes) are
- *     collected but without any guaranteed order.
+ * If `recursive` is true, this method also includes tensors from child nodes
+ * in recursive manner.
  *
- * @param recursive Determines if only direct tensors of this node should be
- *                  collected (false,default); or all tensors should be
- *                  collected (true).
+ * @param sortBy    The sorting criterion for the resulting list.
+ * @param recursive Determines if only tensors of this node should be
+ *                  included (`false`, default); or tensors from all subnodes
+ *                  should be included (`true`).
  * @return
- *     A Vector containing pointers to the collected TensorInfo objects.
+ *     A vector of pointers to `TensorInfo` objects representing the tensors.
  */
 const Vector<const TensorInfo*>
-TensorTreeNode::collect_tensors(bool recursive // = false
+TensorTreeNode::tensor_pointers(SortBy sortBy,   // = SortBy::NAME
+                                bool   recursive // = false
 ) const noexcept {
     Vector<const TensorInfo*> result;
+    SortBy currentOrder{ SortBy::NONE };
 
-    // si no es recursivo, solo extraer los tensores del nodo actual
-    // se garantiza el orden alfabético-natural de los tensores en la lista
+    // if not recursive, only extract immediate tensors
+    // (guaranteed to be in alphabetical-natural order)
     if( !recursive ) {
         result.reserve( _tensorMap.size() );
-        for(const auto& [name, tensor] : _tensorMap) { result.push_back( &tensor ); }
+        for(const auto& [normalizedName, tensor] : _tensorMap) {
+            result.push_back( &tensor );
+        }
+        currentOrder = SortBy::NAME;
     }
-    // si es recursivo, extraer todos los tensores de este nodo y sus hijos
-    // no se garantiza ningún orden en la lista de tensores
+    // if recursive, collect all tensors including tensors from descendants
+    // (no order is guaranteed)
     else {
         result.reserve(1024);
         _collect_recursively(result);
+        currentOrder = SortBy::NONE;
+    }
+    if( sortBy != SortBy::NONE && sortBy != currentOrder ) {
+        /// TODO: implement tensor sorting by the "sortBy" parameter
     }
     return result;
 }

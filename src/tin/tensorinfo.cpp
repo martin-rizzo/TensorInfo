@@ -179,6 +179,47 @@ TensorInfo::name() const noexcept {
 }
 
 /**
+ * Returns the name of this tensor relative to a given prefix.
+ *
+ * This function takes a prefix and removes it from the tensor's full name,
+ * returning the remaining portion as a StringView.
+ * 
+ * If the prefix is not valid (i.e., it doesn't match at the beginning of the
+ * tensor's name or doesn't cover a complete segment), an empty string is
+ * returned.
+ *
+ * @param prefix The prefix to remove from the tensor's full name.
+ *               (for example: "model.layers.25.self_attn")
+ * @return A string view containing the relative name after removing the prefix, 
+ *         or an empty string if the prefix is invalid.
+ */
+StringView
+TensorInfo::relative_name(StringView prefix) const noexcept {
+    // if no prefix was provided, return the full name
+    if( prefix.empty() ) { return name(); }
+
+    // remove any trailing dot from the user provided prefix
+    if( prefix.ends_with('.') ) { prefix.remove_suffix(1); }
+
+    // if the prefix does not match at position 0, it is invalid
+    auto pos = name().find(prefix);
+    if( pos != 0 ) { return ""; }
+
+    // create a string_view from the node's name and remove the prefix
+    StringView result{ name() };
+    result.remove_prefix( prefix.size() );
+
+    // if the resulting name does not start with a dot,
+    // the prefix is invalid because it does not cover a complete segment
+    if( !result.starts_with('.') ) {
+        return "";
+    }
+    // return the remaining relative name after removing the initial dot
+    result.remove_prefix(1);
+    return result;
+}
+
+/**
  * Generates a lexicographically sortable name.
  *
  * This function processes the tensor's name to ensure correct lexicographic

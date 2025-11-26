@@ -16,6 +16,7 @@
 #include <optional>     // for std::optional
 #include <vector>       // for std::vector
 #include <unordered_map>// for std::unordered_map
+#include <functional>   // fora std::hash<void>, std::equal_to<void>
 #include <string>       // for std::string
 #include <string_view>  // for std::string_view
 #include <filesystem>   // for std::filesystem::path
@@ -25,19 +26,19 @@ namespace tin {
 
 /*================================= SIMPLE-CODE ALIASES ==================================================
   A set of templates to simplify code's visual appearance (?)
- +----------------+---------------------------------------------------------+---------------------------+
- | SIMPLE-CODE    | Description                                             | Implemented using         |
- | -------------- | ------------------------------------------------------- | ------------------------- |
- | SharedPtr<T>   | Manages shared ownership of a `T` object.               | `std::shared_ptr<T>`      |
- | Optional<T>    | A type that may or may not contain a value of `T`.      | `std::optional<T>`        |
- | Vector<T>      | A sequence of objects of type `T`.                      | `std::vector<T>`          |
- | Map<T>         | An associative container that maps keys to values.      | `std::unordered_map<T>`   |
- | String         | A string of characters.                                 | `std::string`             |
- | StringView     | A lightweight view of a string.                         | `std::string_view`        |
- | Long           | A signed integer that guarantees at least 64 bits.      | <implentation-specific>   |
- | ULong          | An unsigned integer that guarantees at least 64 bits.   | <implentation-specific>   |
- | Path           | A path in the filesystem.                               | `std::filesystem::path`   |
- | make_shared<T> | Constructs a `T` object and returns a `SharedPtr<T>`.   | `std::make_shared<T>()`   |
+ +-----------------+---------------------------------------------------------+-----------------------------+
+ | SIMPLE-CODE     | Description                                             | Implemented using           |
+ | --------------- | ------------------------------------------------------- | --------------------------- |
+ | SharedPtr<T>    | Manages shared ownership of a `T` object.               | `std::shared_ptr<T>`        |
+ | Optional<T>     | A type that may or may not contain a value of `T`.      | `std::optional<T>`          |
+ | Vector<T>       | A sequence of objects of type `T`.                      | `std::vector<T>`            |
+ | String          | A string of characters.                                 | `std::string`               |
+ | StringView      | A lightweight view of a string.                         | `std::string_view`          |
+ | StringDict<T>   | A dictionary that maps strings to objects of type `T`.  | `std::unordered_map<str,T>` |
+ | Long            | A signed integer that guarantees at least 64 bits.      | <implentation-specific>     |
+ | ULong           | An unsigned integer that guarantees at least 64 bits.   | <implentation-specific>     |
+ | Path            | A path in the filesystem.                               | `std::filesystem::path`     |
+ | make_shared<T>  | Constructs a `T` object and returns a `SharedPtr<T>`.   | `std::make_shared<T>()`     |
 */
 
 /** A shared pointer to an object of type T. (implemented using std::shared_ptr<T>) */
@@ -52,15 +53,15 @@ using Optional = std::optional<T>;
 template <typename T>
 using Vector = std::vector<T>;
 
-/** A map of objects of type T. (implemented using std::unordered_map<T>) */
-template <typename Key, typename Value>
-using Map = std::unordered_map<Key, Value>;
-
 /** A sequence of characters. */
 using String = std::string;
 
 /** A lightweight view of a string. (implemented using std::string_view) */
 using StringView = std::string_view;
+
+/** An associative container that maps keys of type `string` to values of type T. */
+template <typename T>
+using StringDict = std::unordered_map<std::string, T, std::hash<std::string>, std::equal_to<>>;
 
 #if defined(__GNUC__) || defined(__clang__)
     // GCC and Clang provide a predefined macro `__SIZEOF_LONG__`

@@ -18,5 +18,6 @@ sources += files(
     'tensormap_safetensors.cpp',
     'tensormap.cpp',
     'tensortree.cpp',
-    'unnamedtensorinfo.cpp'
+    'tensortreenode.cpp',
+    'unnamedtensorinfo.cpp',
 )

@@ -12,21 +12,70 @@
 #pragma once
 #ifndef TIN_TENSORTREE_H_
 #define TIN_TENSORTREE_H_
+#include <tin/tensormap.h>
+#include <tin/tensortreenode.h>
 namespace tin {
 
 
+/**
+ * The checkpoint tensor information represented as a hierarchical tree structure.
+ */
 class TensorTree
 {
 // CONSTRUCTION/DESTRUCTION
 public:
+    TensorTree(const TensorMap& map);
     TensorTree() = default;
     ~TensorTree() = default;
 
+// ACCESORS
+public:
+    const TensorTreeNode& root() const noexcept;
+
+// MODIFIERS
+public:
+    bool insert(const TensorInfo& tensorInfo);
+
+
 // IMPLEMENTATION
 private:
-
-
+    TensorTreeNode _root;
 };
+
+
+//================================ INLINES ================================//
+
+/**
+ * Returns a reference to the root node of the tensor tree.
+ *
+ * This function provides read-only access to the root node of the tensor tree
+ * structure. The returned reference is constant, ensuring that the underlying
+ * data cannot be modified through this accessor.
+ * 
+ * @return The root node of the tensor tree.
+ */
+inline const TensorTreeNode&
+TensorTree::root() const noexcept { return _root; }
+
+/**
+ * Inserts a new tensor into the tensor tree structure.
+ *
+ * This function adds a new tensor represented by the given TensorInfo object
+ * into the appropriate position within the tensor tree. The insertion is
+ * performed based on the normalized name of the tensor, ensuring natural
+ * ordering within the each node.
+ *
+ * @param tensorInfo The TensorInfo object to be inserted into the tree.
+ * @return `true` if the insertion is successful, `false` otherwise
+ *         (e.g., duplicate tensor names).
+ */ 
+inline bool
+TensorTree::insert(const TensorInfo& tensorInfo) {
+    return _root.insert_tensor(tensorInfo.generate_normalized_name(),
+                               tensorInfo.name(),
+                               tensorInfo
+                               );
+}
 
 
 }      // namespace tin

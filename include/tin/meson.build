@@ -18,5 +18,6 @@ public_headers += files(
     'tensorinfo.h',
     'tensormap.h',
     'tensortree.h',
-    'unnamedtensorinfo.h'
+    'tensortreenode.h',
+    'unnamedtensorinfo.h',
 )

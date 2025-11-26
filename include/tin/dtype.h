@@ -27,73 +27,97 @@ namespace tin {
  * integer, boolean, and specific quantized formats tailored for efficient
  * storage and computation.
  */
-enum class DType
+class DType
 {
-    UNKNOWN,  // Unknown or unsupported data type
+public:
+    enum class Value {
+        // STANDARD TYPES
+        UNKNOWN, F64, F32, F16, BF16, I64, I32, I16, I8, U64, U32, U16, U8, BOOL,
+        // FLOAT-QUANTIZED TYPES
+        F8_E8M0, F8_E5M2, F8_E4M3, F6_E3M2, F6_E2M3, F4,
+        // K-QUANTS
+        Q6_K, Q5_K, Q4_K, Q3_K, Q2_K,
+        // I-QUANTS
+        IQ4_NL, IQ4_XS, IQ3_S, IQ3_XXS, IQ2_S, IQ2_XS, IQ2_XXS, IQ1_M, IQ1_S,
+        // LEGACY QUANTS
+        Q8_1, Q8_0, Q5_1, Q5_0, Q4_1, Q4_0
+    };
+
+public:
+    static DType UNKNOWN; // Unknown or unsupported data type
 
     //== STANDARD TYPES =====================================================
     
-    F64,      // 64-bit floating point
-    F32,      // 32-bit floating point
-    F16,      // 16-bit floating point (half precision)
-    BF16,     // Brain floating point 
-    I64,      // 64-bit signed integer
-    I32,      // 32-bit signed integer
-    I16,      // 16-bit signed integer
-    I8,       // 8-bit signed integer
-    U64,      // 64-bit unsigned integer
-    U32,      // 32-bit unsigned integer
-    U16,      // 16-bit unsigned integer
-    U8,       // 8-bit unsigned integer
-    BOOL,     // Boolean value
+    static DType F64;  ///< 64-bit floating point
+    static DType F32;  ///< 32-bit floating point
+    static DType F16;  ///< 16-bit floating point (half precision)
+    static DType BF16; ///< Brain floating point 
+    static DType I64;  ///< 64-bit signed integer
+    static DType I32;  ///< 32-bit signed integer
+    static DType I16;  ///< 16-bit signed integer
+    static DType I8;   ///< 8-bit signed integer
+    static DType U64;  ///< 64-bit unsigned integer
+    static DType U32;  ///< 32-bit unsigned integer
+    static DType U16;  ///< 16-bit unsigned integer
+    static DType U8;   ///< 8-bit unsigned integer
+    static DType BOOL; ///< Boolean value
 
     //== FLOAT-QUANTIZED TYPES ==============================================
-
-    F8_E8M0,  // F8_E8M0 [https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf]
-    F8_E5M2,  // FP8     [https://arxiv.org/pdf/2209.05433.pdf]
-    F8_E4M3,  // FP8     [https://arxiv.org/pdf/2209.05433.pdf]
-    F6_E3M2,  // MXF6    [https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf]
-    F6_E2M3,  // MXF6    [https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf]
-    F4,       // MXF4    [https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf]
+    
+    static DType F8_E8M0; // F8_E8M0 [https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf]
+    static DType F8_E5M2; // FP8     [https://arxiv.org/pdf/2209.05433.pdf]
+    static DType F8_E4M3; // FP8     [https://arxiv.org/pdf/2209.05433.pdf]
+    static DType F6_E3M2; // MXF6    [https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf]  
+    static DType F6_E2M3; // MXF6    [https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf]
+    static DType F4;      // MXF4    [https://www.opencompute.org/documents/ocp-microscaling-formats-mx-v1-0-spec-final-pdf]
 
     //== K-QUANTS ===========================================================
+
     //[https://github.com/ggml-org/llama.cpp/pull/1684]
     //[https://github.com/ggml-org/llama.cpp/blob/master/gguf-py/gguf/quants.py]
 
-    Q6_K,     // "type-0" 6-bit. 16 blocks of 16 weights. Scales quantized with 8 bits.
-              // Q4[128b] + Q2[64b] + scales_Q8[16b] + sizeof(float16) = 210 bytes (6.5625 bpw)
-
-    Q5_K,     // "type-1" 5-bit. 8 blocks of 32 weights. Scales:Mins quantized with 6 bits.
-              // sizeof(float16) + sizeof(float16) + scales_mins_Q6[12b] + Q1[32b] + Q4[128b] = 176 bytes (5.5 bpw)
-
-    Q4_K,     // "type-1" 4-bit. 8 blocks of 32 weights. Scales:Mins quantized with 6 bits.
-              // sizeof(float16) + sizeof(float16) + scales_mins_Q6[12b] + Q4[128b] = 144 bytes (4.5 bpw)
-
-    Q3_K,     // "type-0" 6-bits. 16 blocks of 16 weights. Scales quantized with 6 bits.
-              //  Q1[32b] + Q2[64b] + scales_Q6[12b] + sizeof(float16) = 110 bytes (3.4375 bpw)
-
-    Q2_K,     // "type-1" 2-bit. 16 blocks of 16 weight. Scales:Mins quantized with 4 bits.
-              // scales_mins_Q4[16b] + Q2[64b], sizeof(float16) + sizeof(float16) = 84 bytes (2.625)
+    static DType Q6_K; // "type-0" 6-bit. 16 blocks of 16 weights. Scales quantized with 8 bits.
+                       //  Q4[128b] + Q2[64b] + scales_Q8[16b] + sizeof(float16) = 210 bytes (6.5625 bpw)
+    static DType Q5_K; // "type-1" 5-bit. 8 blocks of 32 weights. Scales:Mins quantized with 6 bits.
+                       //  sizeof(float16) + sizeof(float16) + scales_mins_Q6[12b] + Q1[32b] + Q4[128b] = 176 bytes (5.5 bpw)
+    static DType Q4_K; // "type-1" 4-bit. 8 blocks of 32 weights. Scales:Mins quantized with 6 bits.
+                       //  sizeof(float16) + sizeof(float16) + scales_mins_Q6[12b] + Q4[128b] = 144 bytes (4.5 bpw)
+    static DType Q3_K; // "type-0" 6-bits. 16 blocks of 16 weights. Scales quantized with 6 bits.
+                       //  Q1[32b] + Q2[64b] + scales_Q6[12b] + sizeof(float16) = 110 bytes (3.4375 bpw)
+    static DType Q2_K; // "type-1" 2-bit. 16 blocks of 16 weight. Scales:Mins quantized with 4 bits.
+                       //  scales_mins_Q4[16b] + Q2[64b], sizeof(float16) + sizeof(float16) = 84 bytes (2.625)
 
     //== I-QUANTS ===========================================================
+
     //[https://github.com/ggml-org/llama.cpp/pull/4773]
-    IQ4_NL,
-    IQ4_XS,
-    IQ3_S,
-    IQ3_XXS,
-    IQ2_S,
-    IQ2_XS,
-    IQ2_XXS,
-    IQ1_M,
-    IQ1_S,
+
+    static DType IQ4_NL;
+    static DType IQ4_XS;
+    static DType IQ3_S;
+    static DType IQ3_XXS;
+    static DType IQ2_S;
+    static DType IQ2_XS;
+    static DType IQ2_XXS;
+    static DType IQ1_M;
+    static DType IQ1_S;
 
     //== LEGACY QUANTS ======================================================
-    Q8_1,
-    Q8_0,
-    Q5_1,
-    Q5_0,
-    Q4_1,
-    Q4_0
+    
+    static DType Q8_1;
+    static DType Q8_0;
+    static DType Q5_1;
+    static DType Q5_0; 
+    static DType Q4_1;
+    static DType Q4_0;
+
+public:
+    constexpr auto operator<=>(const DType& other) const = default;
+    constexpr Value value() const { return _value; }
+    std::string_view to_string() const noexcept;
+
+private:
+    constexpr DType(Value value) : _value(value) {}
+    Value _value;
 };
 
 
@@ -110,9 +134,6 @@ constexpr tin::DType get_dtype() {
     else static_assert(false, "Unsupported type for DType conversion");
 }
 
-} // namespace tin
-
-namespace std { string_view to_string(::tin::DType type); }
 
 /**
  * Overloads the insertion (<<) operator for outputting tin::DType values to streams.
@@ -125,9 +146,11 @@ namespace std { string_view to_string(::tin::DType type); }
  * @return A reference to 'os' for chaining.
  */
 inline 
-std::ostream& operator<<(std::ostream& os, tin::DType type) {
-    return os << std::to_string(type);
+std::ostream& operator<<(std::ostream& os, DType dtype) {
+    return os << dtype.to_string();
 }
+
+} // namespace tin
 
 /**
  * Formatter specialization for DType type.
@@ -148,10 +171,10 @@ std::ostream& operator<<(std::ostream& os, tin::DType type) {
  * @endcode
  */
 template <>
-struct std::formatter<tin::DType> : std::formatter<std::string_view>
+struct std::formatter<tin::DType> : std::formatter<::std::string_view>
 {
     auto format(const tin::DType& dtype, format_context& ctx) const {
-        return std::formatter<std::string_view>::format(std::to_string(dtype), ctx);
+        return ::std::formatter<std::string_view>::format(dtype.to_string(), ctx);
     }
 };
 
